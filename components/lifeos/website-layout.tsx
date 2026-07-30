@@ -5,6 +5,7 @@ import type { ScreenId, Emergency } from '@/lib/lifeos'
 import { emergencies, vehicles, mechanic } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
 import { MapCanvas } from '@/components/lifeos/map-canvas'
+import type { AuthUser } from '@/lib/firebase'
 import {
   ShieldCheck,
   Zap,
@@ -20,27 +21,32 @@ import {
   PhoneCall,
   Share2,
   Flashlight,
-  Clock,
   Radio,
   ChevronRight,
   Sparkles,
+  LogOut,
+  LogIn,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function WebsiteLayout({
   children,
   activeScreen,
+  user,
   onNavigate,
   onEmergency,
   onSelectEmergency,
+  onLogout,
   viewMode,
   onToggleViewMode,
 }: {
   children: ReactNode
   activeScreen: ScreenId
+  user?: AuthUser | null
   onNavigate: (s: ScreenId) => void
   onEmergency: () => void
   onSelectEmergency: (e: Emergency) => void
+  onLogout?: () => void
   viewMode: 'website' | 'mobile'
   onToggleViewMode: (mode: 'website' | 'mobile') => void
 }) {
@@ -106,8 +112,38 @@ export function WebsiteLayout({
             })}
           </nav>
 
-          {/* Right Actions: SOS Trigger & View Switcher */}
+          {/* Right Actions: SOS Trigger, User Badge & View Switcher */}
           <div className="flex items-center gap-3">
+            {/* User Session Status / Login Button */}
+            {user ? (
+              <div className="hidden lg:flex items-center gap-2 glass rounded-full pl-3 pr-1 py-1 border border-white/10 text-xs">
+                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-semibold max-w-[100px] truncate">{user.displayName || user.email?.split('@')[0]}</span>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="p-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-white/10 transition-colors"
+                    title="Sign Out"
+                  >
+                    <LogOut className="size-3.5" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => onNavigate('login')}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border border-primary/40 transition-all',
+                  activeScreen === 'login'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'glass text-primary hover:bg-primary/10'
+                )}
+              >
+                <LogIn className="size-3.5" />
+                <span>Login</span>
+              </button>
+            )}
+
             {/* Immediate SOS Button */}
             <button
               onClick={onEmergency}

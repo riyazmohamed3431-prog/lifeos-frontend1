@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 
 export type ScreenId =
+  | 'login'
   | 'home'
   | 'map'
   | 'booking'
@@ -20,6 +21,7 @@ export type ScreenId =
   | 'payment'
   | 'history'
   | 'profile'
+
 
 export type Emergency = {
   id: string

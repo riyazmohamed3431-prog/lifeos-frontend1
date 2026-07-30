@@ -2,6 +2,7 @@
 
 import { vehicles } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
+import type { AuthUser } from '@/lib/firebase'
 import {
   Car,
   Crown,
@@ -12,9 +13,22 @@ import {
   ChevronRight,
   Plus,
   ShieldCheck,
+  LogOut,
+  LogIn,
 } from 'lucide-react'
 
-export function ProfileScreen() {
+export function ProfileScreen({
+  user,
+  onLogout,
+  onLoginRedirect,
+}: {
+  user?: AuthUser | null
+  onLogout?: () => void
+  onLoginRedirect?: () => void
+}) {
+  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Alex Lin')
+  const email = user?.email || 'alex.lin@lifeos.app'
+
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar px-6 pt-4 pb-28">
       <AmbientBg tone="calm" />
@@ -22,19 +36,32 @@ export function ProfileScreen() {
       <div className="relative z-10">
         {/* Identity */}
         <div className="grad-border flex items-center gap-4 rounded-3xl p-5">
-          <div className="relative grid size-16 place-items-center rounded-full bg-gradient-to-br from-primary/40 to-accent/20 text-2xl font-bold">
-            AL
+          <div className="relative grid size-16 place-items-center rounded-full bg-gradient-to-br from-primary/40 to-accent/20 text-2xl font-bold uppercase">
+            {displayName.substring(0, 2)}
             <span className="absolute -bottom-0.5 -right-0.5 grid size-6 place-items-center rounded-full bg-accent text-accent-foreground">
               <ShieldCheck className="size-3.5" />
             </span>
           </div>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">Alex Lin</h1>
-            <p className="text-xs text-muted-foreground">Member since 2029</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold truncate">{displayName}</h1>
+            <p className="text-xs text-muted-foreground truncate">{email}</p>
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary">
-            <Crown className="size-3.5" /> Elite
-          </div>
+          {user ? (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 rounded-full bg-destructive/15 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/25 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="size-3.5" /> Log Out
+            </button>
+          ) : (
+            <button
+              onClick={onLoginRedirect}
+              className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25 transition-colors"
+            >
+              <LogIn className="size-3.5" /> Sign In
+            </button>
+          )}
         </div>
 
         {/* Membership */}
@@ -68,7 +95,7 @@ export function ProfileScreen() {
                 <p className="mt-2 font-mono text-xs text-primary">{v.plate}</p>
               </div>
             ))}
-            <button className="grid w-44 shrink-0 place-items-center rounded-3xl border border-dashed border-white/15 text-muted-foreground">
+            <button className="grid w-44 shrink-0 place-items-center rounded-3xl border border-dashed border-white/15 text-muted-foreground hover:bg-white/5 transition-colors">
               <Plus className="size-6" />
             </button>
           </div>
@@ -136,7 +163,7 @@ function Section({
     <div className="mt-7">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">{title}</h2>
-        {action && <button className="text-xs text-primary">{action}</button>}
+        {action && <button className="text-xs text-primary font-medium">{action}</button>}
       </div>
       {children}
     </div>
