@@ -7,14 +7,13 @@ import {
   Car,
   Crown,
   Phone,
-  Trophy,
-  BatteryCharging,
-  WifiOff,
+  ShieldCheck,
   ChevronRight,
   Plus,
-  ShieldCheck,
   LogOut,
   LogIn,
+  Bell,
+  Lock,
 } from 'lucide-react'
 
 export function ProfileScreen({
@@ -30,173 +29,129 @@ export function ProfileScreen({
   const email = user?.email || 'alex.lin@lifeos.app'
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar px-6 pt-4 pb-28">
+    <div className="relative h-full overflow-y-auto no-scrollbar px-5 pt-4 pb-32 space-y-6">
       <AmbientBg tone="calm" />
 
-      <div className="relative z-10">
-        {/* Identity */}
-        <div className="grad-border flex items-center gap-4 rounded-3xl p-5">
-          <div className="relative grid size-16 place-items-center rounded-full bg-gradient-to-br from-primary/40 to-accent/20 text-2xl font-bold uppercase">
-            {displayName.substring(0, 2)}
-            <span className="absolute -bottom-0.5 -right-0.5 grid size-6 place-items-center rounded-full bg-accent text-accent-foreground">
-              <ShieldCheck className="size-3.5" />
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold truncate">{displayName}</h1>
-            <p className="text-xs text-muted-foreground truncate">{email}</p>
+      <div className="relative z-10 space-y-6">
+        {/* User Identity Card */}
+        <div className="surface-card rounded-3xl p-5 flex items-center justify-between shadow-xl border border-white/10">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="grid size-14 place-items-center rounded-2xl bg-primary/20 text-primary font-bold text-lg border border-primary/30 shrink-0">
+              {displayName.substring(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base font-bold text-foreground truncate">{displayName}</h1>
+                <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+              </div>
+              <p className="text-xs text-muted-foreground truncate">{email}</p>
+            </div>
           </div>
           {user ? (
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 rounded-full bg-destructive/15 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/25 transition-colors"
+              className="p-2 rounded-xl bg-destructive/15 text-destructive hover:bg-destructive/25 transition-all cursor-pointer"
               title="Sign Out"
             >
-              <LogOut className="size-3.5" /> Log Out
+              <LogOut className="size-4" />
             </button>
           ) : (
             <button
               onClick={onLoginRedirect}
-              className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all cursor-pointer flex items-center gap-1"
             >
               <LogIn className="size-3.5" /> Sign In
             </button>
           )}
         </div>
 
-        {/* Membership */}
-        <div className="mt-5 overflow-hidden rounded-3xl glass-strong p-5 glow-primary">
+        {/* Membership Tier Banner */}
+        <div className="surface-card rounded-3xl p-5 border border-primary/30 bg-primary/10 shadow-lg space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">LifeOS Membership</p>
-              <p className="text-lg font-bold">Unlimited Rescue</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-accent">LifeOS Membership</p>
+              <h2 className="text-base font-bold text-foreground">Priority Tier I · Unlimited</h2>
             </div>
-            <Crown className="size-7 text-primary" />
+            <Crown className="size-7 text-amber-400" />
           </div>
-          <div className="mt-4 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Rescues used</span>
-            <span className="font-medium">14 / ∞</span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <span className="block h-full w-2/3 rounded-full bg-gradient-to-r from-primary to-accent" />
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-white/5">
+            <span>24/7 Priority Emergency Dispatch</span>
+            <span className="font-semibold text-emerald-400">Active</span>
           </div>
         </div>
 
-        {/* Garage */}
-        <Section title="Your garage" action="Add">
-          <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6">
-            {vehicles.map((v) => (
-              <div key={v.id} className="w-44 shrink-0 grad-border rounded-3xl p-4">
-                <div className="grid size-11 place-items-center rounded-2xl bg-primary/15">
-                  <Car className="size-6 text-primary" />
-                </div>
-                <p className="mt-3 text-sm font-semibold">{v.name}</p>
-                <p className="text-[11px] text-muted-foreground">{v.color}</p>
-                <p className="mt-2 font-mono text-xs text-primary">{v.plate}</p>
-              </div>
-            ))}
-            <button className="grid w-44 shrink-0 place-items-center rounded-3xl border border-dashed border-white/15 text-muted-foreground hover:bg-white/5 transition-colors">
-              <Plus className="size-6" />
+        {/* Garage Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">My Garage</h2>
+            <button className="text-xs font-semibold text-primary flex items-center gap-1 hover:underline">
+              <Plus className="size-3.5" /> Add Vehicle
             </button>
           </div>
-        </Section>
 
-        {/* Emergency contacts */}
-        <Section title="Emergency contacts">
-          <div className="space-y-2">
-            {[
-              { n: 'Sam Lin', r: 'Partner' },
-              { n: 'Roadside Line', r: '24/7 hotline' },
-            ].map((c) => (
-              <div key={c.n} className="glass flex items-center gap-3 rounded-2xl px-4 py-3">
-                <span className="grid size-9 place-items-center rounded-full bg-accent/15">
-                  <Phone className="size-4 text-accent" />
-                </span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{c.n}</p>
-                  <p className="text-[11px] text-muted-foreground">{c.r}</p>
+          <div className="grid grid-cols-1 gap-2.5">
+            {vehicles.map((v) => (
+              <div key={v.id} className="surface-card rounded-2xl p-4 flex items-center justify-between border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
+                    <Car className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-foreground">{v.name}</h3>
+                    <p className="text-[11px] text-muted-foreground">{v.color} · {v.plate}</p>
+                  </div>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </div>
             ))}
           </div>
-        </Section>
+        </div>
 
-        {/* Achievements */}
-        <Section title="Achievements">
-          <div className="grid grid-cols-3 gap-3">
+        {/* Emergency Contacts */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Emergency Contacts</h2>
+          <div className="space-y-2">
             {[
-              { icon: Trophy, l: 'Road Warrior' },
-              { icon: ShieldCheck, l: 'Safe Driver' },
-              { icon: BatteryCharging, l: 'Power Saver' },
-            ].map((a) => (
-              <div key={a.l} className="glass flex flex-col items-center gap-2 rounded-2xl py-4 text-center">
-                <a.icon className="size-6 text-primary" />
-                <span className="text-[10px] font-medium text-muted-foreground">{a.l}</span>
+              { n: 'Sarah Lin', r: 'Spouse · Primary SOS Contact' },
+              { n: 'State Farm Insurance', r: 'Policy #SF-94028' },
+            ].map((c) => (
+              <div key={c.n} className="surface-card rounded-2xl p-3.5 flex items-center justify-between border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-9 place-items-center rounded-xl bg-accent/15 text-accent">
+                    <Phone className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">{c.n}</p>
+                    <p className="text-[11px] text-muted-foreground">{c.r}</p>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground" />
               </div>
             ))}
           </div>
-        </Section>
+        </div>
 
-        {/* Toggles */}
-        <Section title="Preferences">
+        {/* Account & Preferences */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Preferences</h2>
           <div className="space-y-2">
-            <Toggle icon={BatteryCharging} label="Battery saver mode" on />
-            <Toggle icon={WifiOff} label="Offline request queue" />
+            <div className="surface-card rounded-2xl p-3.5 flex items-center justify-between border border-white/5">
+              <div className="flex items-center gap-3">
+                <Bell className="size-4 text-primary" />
+                <span className="text-xs font-semibold text-foreground">Real-time Emergency Alerts</span>
+              </div>
+              <span className="text-xs font-bold text-accent">Enabled</span>
+            </div>
+            <div className="surface-card rounded-2xl p-3.5 flex items-center justify-between border border-white/5">
+              <div className="flex items-center gap-3">
+                <Lock className="size-4 text-primary" />
+                <span className="text-xs font-semibold text-foreground">Privacy & Satellite Telemetry</span>
+              </div>
+              <span className="text-xs font-bold text-emerald-400">Encrypted</span>
+            </div>
           </div>
-        </Section>
+        </div>
       </div>
-    </div>
-  )
-}
-
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string
-  action?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="mt-7">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {action && <button className="text-xs text-primary font-medium">{action}</button>}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-function Toggle({
-  icon: Icon,
-  label,
-  on,
-}: {
-  icon: typeof BatteryCharging
-  label: string
-  on?: boolean
-}) {
-  return (
-    <div className="glass flex items-center gap-3 rounded-2xl px-4 py-3">
-      <span className="grid size-9 place-items-center rounded-full bg-white/5">
-        <Icon className="size-4 text-foreground/80" />
-      </span>
-      <span className="flex-1 text-sm font-medium">{label}</span>
-      <span
-        className={
-          'relative h-6 w-11 rounded-full transition-colors ' + (on ? 'bg-primary' : 'bg-white/15')
-        }
-      >
-        <span
-          className={
-            'absolute top-0.5 size-5 rounded-full bg-white transition-all ' +
-            (on ? 'left-[22px]' : 'left-0.5')
-          }
-        />
-      </span>
     </div>
   )
 }

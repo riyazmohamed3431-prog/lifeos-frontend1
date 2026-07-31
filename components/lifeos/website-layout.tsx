@@ -1,14 +1,15 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { ScreenId, Emergency } from '@/lib/lifeos'
 import { emergencies, vehicles, mechanic } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
 import { MapCanvas } from '@/components/lifeos/map-canvas'
 import type { AuthUser } from '@/lib/firebase'
+import { CallModal } from '@/components/lifeos/call-modal'
 import {
   ShieldCheck,
-  Zap,
+  AlertTriangle,
   MapPin,
   Compass,
   History,
@@ -21,9 +22,7 @@ import {
   PhoneCall,
   Share2,
   Flashlight,
-  Radio,
   ChevronRight,
-  Sparkles,
   LogOut,
   LogIn,
 } from 'lucide-react'
@@ -51,46 +50,47 @@ export function WebsiteLayout({
   onToggleViewMode: (mode: 'website' | 'mobile') => void
 }) {
   const activeVehicle = vehicles[0]
+  const [calling, setCalling] = useState(false)
 
   const navItems: { id: ScreenId; label: string; icon: typeof LayoutDashboard }[] = [
     { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'map', label: 'Live Radar', icon: Compass },
-    { id: 'history', label: 'Dispatch History', icon: History },
+    { id: 'map', label: 'Tracking Radar', icon: Compass },
+    { id: 'history', label: 'Service Logs', icon: History },
     { id: 'profile', label: 'Driver Profile', icon: User },
   ]
 
   return (
-    <div className="relative min-h-screen w-full bg-[oklch(0.12_0.02_264)] text-foreground font-sans overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-[oklch(0.13_0.005_260)] text-foreground font-sans overflow-x-hidden">
       <AmbientBg tone="primary" />
 
-      {/* Top Desktop Navigation Bar */}
-      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[oklch(0.14_0.02_264)]/80 backdrop-blur-xl">
+      {/* Top Desktop Navigation Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[oklch(0.15_0.005_260)]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          {/* Logo & Status */}
+          {/* Logo */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => onNavigate('home')}
-              className="flex items-center gap-2.5 text-left group"
+              className="flex items-center gap-3 text-left group cursor-pointer"
             >
-              <div className="grid size-10 place-items-center rounded-2xl bg-primary/20 text-primary ring-1 ring-primary/40 transition-transform group-hover:scale-105">
-                <ShieldCheck className="size-6 text-primary glow-primary" />
+              <div className="grid size-10 place-items-center rounded-2xl bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">
+                <ShieldCheck className="size-6 text-primary" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                  <span className="text-lg font-bold tracking-tight text-foreground">
                     LifeOS
                   </span>
-                  <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent border border-accent/25">
-                    RESPONSE HUB
+                  <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-bold text-accent border border-accent/20 uppercase tracking-wider">
+                    Tamil Nadu Squad
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground">Autonomous Emergency Assistance</p>
+                <p className="text-[11px] text-muted-foreground">Autonomous Emergency Platform</p>
               </div>
             </button>
           </div>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-1 glass rounded-full px-3 py-1.5 border border-white/10">
+          <nav className="hidden md:flex items-center gap-1 surface-glass rounded-full px-3 py-1.5 border border-white/10 shadow-sm">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = activeScreen === item.id
@@ -99,9 +99,9 @@ export function WebsiteLayout({
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
                   className={cn(
-                    'flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all',
+                    'flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                      ? 'bg-primary text-primary-foreground shadow-md'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                   )}
                 >
@@ -112,17 +112,16 @@ export function WebsiteLayout({
             })}
           </nav>
 
-          {/* Right Actions: SOS Trigger, User Badge & View Switcher */}
+          {/* Right Header Actions */}
           <div className="flex items-center gap-3">
-            {/* User Session Status / Login Button */}
             {user ? (
-              <div className="hidden lg:flex items-center gap-2 glass rounded-full pl-3 pr-1 py-1 border border-white/10 text-xs">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-semibold max-w-[100px] truncate">{user.displayName || user.email?.split('@')[0]}</span>
+              <div className="hidden lg:flex items-center gap-2 surface-glass rounded-full pl-3 pr-1.5 py-1 text-xs">
+                <span className="size-2 rounded-full bg-emerald-400" />
+                <span className="font-bold max-w-[100px] truncate">{user.displayName || user.email?.split('@')[0]}</span>
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="p-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-white/10 transition-colors"
+                    className="p-1 rounded-full text-muted-foreground hover:text-destructive transition-colors"
                     title="Sign Out"
                   >
                     <LogOut className="size-3.5" />
@@ -133,179 +132,144 @@ export function WebsiteLayout({
               <button
                 onClick={() => onNavigate('login')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border border-primary/40 transition-all',
+                  'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
                   activeScreen === 'login'
                     ? 'bg-primary text-primary-foreground'
-                    : 'glass text-primary hover:bg-primary/10'
+                    : 'surface-card text-primary hover:bg-primary/10'
                 )}
               >
                 <LogIn className="size-3.5" />
-                <span>Login</span>
+                <span>Sign In</span>
               </button>
             )}
 
-            {/* Immediate SOS Button */}
+            {/* Immediate SOS Trigger */}
             <button
               onClick={onEmergency}
-              className="hidden sm:flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-xs font-bold text-destructive-foreground glow-emergency hover:bg-destructive/90 active:scale-95 transition-all"
+              className="hidden sm:flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-xs font-bold text-destructive-foreground shadow-md hover:bg-destructive/90 active:scale-95 transition-all cursor-pointer"
             >
-              <Zap className="size-4 animate-pulse" />
+              <AlertTriangle className="size-4" />
               <span>EMERGENCY SOS</span>
             </button>
 
-            {/* Model Switcher Pill */}
-            <div className="flex items-center rounded-full bg-slate-900/90 p-1 border border-white/15 shadow-inner">
+            {/* View Mode Toggle Pill */}
+            <div className="flex items-center rounded-full surface-card p-1 border border-white/10">
               <button
                 onClick={() => onToggleViewMode('website')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all',
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer',
                   viewMode === 'website'
-                    ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
-                title="Desktop Web Layout"
               >
                 <Monitor className="size-3.5" />
-                <span className="hidden sm:inline">Website</span>
+                <span className="hidden sm:inline">Desktop Hub</span>
               </button>
               <button
                 onClick={() => onToggleViewMode('mobile')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all',
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer',
                   viewMode === 'mobile'
-                    ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
-                title="Mobile Smartphone Frame Layout"
               >
                 <Smartphone className="size-3.5" />
-                <span className="hidden sm:inline">Mobile</span>
+                <span className="hidden sm:inline">Mobile Frame</span>
               </button>
             </div>
           </div>
         </div>
-
-        {/* Mobile Navigation bar for smaller viewports when in website mode */}
-        <div className="md:hidden flex items-center justify-around border-t border-white/5 py-2 px-2 bg-black/40">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeScreen === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={cn(
-                  'flex flex-col items-center gap-1 text-[11px] font-medium px-3 py-1 rounded-xl transition-all',
-                  isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
-                )}
-              >
-                <Icon className="size-4" />
-                {item.label}
-              </button>
-            )
-          })}
-        </div>
       </header>
 
-      {/* Main Layout Body */}
+      {/* Main Body Grid */}
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Active Screen Window (Left / Center Column) */}
+          {/* Active Mobile Application Viewport */}
           <div className="lg:col-span-8 flex flex-col">
-            {/* Desktop Screen Frame Card */}
-            <div className="glass-strong relative min-h-[680px] w-full rounded-3xl border border-white/10 p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col justify-between">
+            <div className="surface-card relative min-h-[680px] w-full rounded-3xl border border-white/10 p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col justify-between">
               {/* Screen Top Header Strip */}
               <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-accent animate-ping" />
-                  <span className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
-                    System Mode · {activeScreen.toUpperCase()}
+                  <span className="size-2 rounded-full bg-emerald-400" />
+                  <span className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Active View · {activeScreen}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <MapPin className="size-3.5 text-primary" /> Route 9 · Mile 42
-                  </span>
-                  <span className="hidden sm:inline">|</span>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-accent">
-                    <Sparkles className="size-3.5" /> Satellite Linked
+                    <MapPin className="size-3.5 text-primary" /> GST Road NH-45 · Chengalpattu, TN
                   </span>
                 </div>
               </div>
 
-              {/* Dynamic Screen View */}
+              {/* Dynamic Active Screen Content */}
               <div className="flex-1 w-full relative">{children}</div>
             </div>
           </div>
 
-          {/* Sidebar & Live Telemetry Panel (Right Column) */}
-          <aside className="lg:col-span-4 space-y-6">
+          {/* Telemetry & Sidebar */}
+          <aside className="lg:col-span-4 space-y-5">
             {/* Live Vehicle Telemetry Card */}
-            <div className="grad-border rounded-3xl p-5 space-y-4">
+            <div className="surface-card rounded-3xl p-5 space-y-4 shadow-xl border border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="grid size-10 place-items-center rounded-xl bg-primary/20 text-primary">
-                    <ShieldCheck className="size-5 text-primary" />
+                    <ShieldCheck className="size-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold">{activeVehicle.name}</h3>
+                    <h3 className="text-sm font-bold text-foreground">{activeVehicle.name}</h3>
                     <p className="text-xs text-muted-foreground">{activeVehicle.plate} · {activeVehicle.color}</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent">
-                  Connected
+                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold text-emerald-400">
+                  Monitored
                 </span>
               </div>
 
-              {/* Telemetry Metrics */}
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="glass rounded-2xl p-3 flex items-center gap-3">
+                <div className="surface-card rounded-2xl p-3 flex items-center gap-3 border border-white/5">
                   <BatteryCharging className="size-5 text-accent shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Battery</p>
-                    <p className="text-sm font-bold">84% <span className="text-[10px] text-accent">Charging</span></p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Battery</p>
+                    <p className="text-sm font-bold text-foreground">84%</p>
                   </div>
                 </div>
-                <div className="glass rounded-2xl p-3 flex items-center gap-3">
+                <div className="surface-card rounded-2xl p-3 flex items-center gap-3 border border-white/5">
                   <Gauge className="size-5 text-primary shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-medium">Tyres</p>
-                    <p className="text-sm font-bold">36 PSI <span className="text-[10px] text-emerald-400">Optimal</span></p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Tyre Pressure</p>
+                    <p className="text-sm font-bold text-foreground">36 PSI</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Live Radar Map Preview Widget */}
-            <div className="glass-strong rounded-3xl p-5 space-y-3 relative overflow-hidden">
+            {/* Tamil Nadu Live Radar Card */}
+            <div className="surface-card rounded-3xl p-5 space-y-3 relative overflow-hidden shadow-xl border border-white/10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Radio className="size-4 text-accent animate-pulse" />
-                  <h3 className="text-sm font-bold">Live Fleet Radar</h3>
-                </div>
+                <h3 className="text-sm font-bold text-foreground">Tamil Nadu Live Radar</h3>
                 <button
                   onClick={() => onNavigate('map')}
-                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                  className="flex items-center gap-1 text-xs font-bold text-primary hover:underline"
                 >
-                  Expand <ChevronRight className="size-3.5" />
+                  Expand Map <ChevronRight className="size-3.5" />
                 </button>
               </div>
 
               <div className="relative h-44 w-full rounded-2xl overflow-hidden border border-white/10">
                 <MapCanvas className="h-full w-full" showRoute progress={0.6} />
-                <div className="absolute bottom-2 left-2 glass rounded-full px-2.5 py-1 text-[10px] font-medium flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  3 Responders Nearby (~{mechanic.etaMin}m ETA)
+                <div className="absolute bottom-2 left-2 surface-glass rounded-full px-3 py-1 text-[10px] font-bold flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                  {mechanic.name} (~{mechanic.etaMin}m ETA)
                 </div>
               </div>
             </div>
 
-            {/* Quick Dispatch Services Grid */}
-            <div className="glass-strong rounded-3xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold">Instant Dispatch</h3>
-                <span className="text-xs text-muted-foreground">Select to trigger</span>
-              </div>
+            {/* Quick Dispatch Grid */}
+            <div className="surface-card rounded-3xl p-5 space-y-3 shadow-xl border border-white/10">
+              <h3 className="text-sm font-bold text-foreground">Quick Dispatch Services</h3>
               <div className="grid grid-cols-2 gap-2.5">
                 {emergencies.slice(0, 4).map((e) => {
                   const Icon = e.icon
@@ -313,16 +277,16 @@ export function WebsiteLayout({
                     <button
                       key={e.id}
                       onClick={() => onSelectEmergency(e)}
-                      className="glass hover:bg-white/10 rounded-2xl p-3 text-left transition-all group flex flex-col justify-between h-24 border border-white/5 hover:border-primary/40"
+                      className="surface-card hover:bg-secondary/70 rounded-2xl p-3 text-left transition-all cursor-pointer flex flex-col justify-between h-24 border border-white/5"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="grid size-8 place-items-center rounded-xl bg-primary/15 text-primary group-hover:scale-105 transition-transform">
+                        <div className="grid size-8 place-items-center rounded-xl bg-primary/15 text-primary">
                           <Icon className="size-4" />
                         </div>
-                        <span className="text-[10px] font-medium text-accent">~{e.eta}</span>
+                        <span className="text-[10px] font-bold text-accent">~{e.eta}</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">{e.label}</p>
+                        <p className="text-xs font-bold text-foreground">{e.label}</p>
                         <p className="text-[10px] text-muted-foreground truncate">{e.sub}</p>
                       </div>
                     </button>
@@ -331,24 +295,35 @@ export function WebsiteLayout({
               </div>
             </div>
 
-            {/* Emergency Shortcuts Bar */}
+            {/* Emergency Actions Bar */}
             <div className="grid grid-cols-3 gap-2">
-              <button className="glass rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-white/10 transition-colors">
-                <Flashlight className="size-4 text-accent" />
-                <span className="text-[11px] font-medium">Flashlight</span>
+              <button className="surface-card rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-secondary/70 transition-all cursor-pointer">
+                <Flashlight className="size-4 text-amber-400" />
+                <span className="text-[11px] font-semibold text-foreground">Flashlight</span>
               </button>
-              <button className="glass rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-white/10 transition-colors">
+              <button className="surface-card rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-secondary/70 transition-all cursor-pointer">
                 <Share2 className="size-4 text-primary" />
-                <span className="text-[11px] font-medium">Share GPS</span>
+                <span className="text-[11px] font-semibold text-foreground">Share GPS</span>
               </button>
-              <button className="glass rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => setCalling(true)}
+                className="surface-card rounded-2xl p-3 flex flex-col items-center gap-1 text-center hover:bg-secondary/70 transition-all cursor-pointer"
+              >
                 <PhoneCall className="size-4 text-destructive" />
-                <span className="text-[11px] font-medium">Call 911</span>
+                <span className="text-[11px] font-semibold text-foreground">Call Tech</span>
               </button>
             </div>
           </aside>
         </div>
       </main>
+
+      {/* Live Call Modal */}
+      <CallModal
+        isOpen={calling}
+        onClose={() => setCalling(false)}
+        mechanicName={mechanic.name}
+        mechanicPhone={mechanic.phone}
+      />
     </div>
   )
 }

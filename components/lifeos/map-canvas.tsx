@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from '@/lib/utils'
 
 export function MapCanvas({
@@ -10,80 +12,99 @@ export function MapCanvas({
   progress?: number
 }) {
   return (
-    <div className={cn('relative overflow-hidden bg-[oklch(0.14_0.02_264)]', className)}>
-      {/* base gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,oklch(0.22_0.04_255)_0%,transparent_60%)]" />
+    <div className={cn('relative overflow-hidden bg-[oklch(0.13_0.005_260)]', className)}>
+      {/* Base Dark Surface Map Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(100%_100%_at_50%_20%,oklch(0.19_0.01_260)_0%,oklch(0.12_0.005_260)_100%)]" />
 
-      {/* neon road network */}
+      {/* Vector Map Canvas depicting Tamil Nadu NH-45 Highway & Coastline */}
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <linearGradient id="road" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="oklch(0.68 0.17 245)" stopOpacity="0.55" />
-            <stop offset="1" stopColor="oklch(0.75 0.14 195)" stopOpacity="0.25" />
+          <linearGradient id="tnCoast" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="oklch(0.48 0.20 260)" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="oklch(0.78 0.14 230)" stopOpacity="0.10" />
           </linearGradient>
         </defs>
-        <g stroke="oklch(1 0 0 / 8%)" strokeWidth="10" fill="none">
-          <path d="M-20 120 H420" />
-          <path d="M-20 280 H420" />
-          <path d="M120 -20 V420" />
-          <path d="M280 -20 V420" />
-          <path d="M-20 40 L200 200 L420 360" />
-        </g>
-        <g stroke="url(#road)" strokeWidth="2.5" fill="none" strokeLinecap="round">
-          <path d="M-20 120 H420" />
-          <path d="M280 -20 V420" />
-          <path d="M-20 40 L200 200 L420 360" />
+
+        {/* Bay of Bengal Coastline Boundary (East Coast Tamil Nadu) */}
+        <path
+          d="M290 -20 Q310 100 330 200 T370 420 L420 420 L420 -20 Z"
+          fill="url(#tnCoast)"
+          stroke="oklch(0.78 0.14 230 / 20%)"
+          strokeWidth="1.5"
+        />
+
+        {/* Secondary Tamil Nadu Roads Grid (Inner Ring Road, OMR, ECR) */}
+        <g stroke="oklch(1 0 0 / 6%)" strokeWidth="6" fill="none">
+          <path d="M-20 80 H350" />
+          <path d="M-20 220 H360" />
+          <path d="M-20 340 H380" />
+          <path d="M80 -20 V420" />
+          <path d="M220 -20 V420" />
+          {/* ECR Coastal Road */}
+          <path d="M270 -20 C280 120, 310 240, 340 420" />
         </g>
 
+        {/* Primary Highway: NH-45 (GST Road, Chennai - Chengalpattu - Trichy) */}
+        <g stroke="oklch(0.48 0.20 260 / 45%)" strokeWidth="3.5" fill="none" strokeLinecap="round">
+          <path d="M40 -20 L130 140 L210 270 L260 420" />
+        </g>
+
+        {/* Active Emergency Dispatch Route along NH-45 */}
         {showRoute && (
           <>
             <path
-              d="M90 320 C 150 260, 180 220, 240 150 S 300 90, 320 70"
+              d="M40 -20 L130 140 L210 270 L260 420"
               fill="none"
-              stroke="oklch(0.68 0.17 245)"
-              strokeWidth="4"
+              stroke="oklch(0.48 0.20 260)"
+              strokeWidth="5"
               strokeLinecap="round"
               strokeDasharray="1000"
               strokeDashoffset={1000 - progress * 1000}
-              className="drop-shadow-[0_0_8px_oklch(0.68_0.17_245)]"
             />
             <path
-              d="M90 320 C 150 260, 180 220, 240 150 S 300 90, 320 70"
+              d="M40 -20 L130 140 L210 270 L260 420"
               fill="none"
-              stroke="oklch(1 0 0 / 15%)"
-              strokeWidth="4"
+              stroke="oklch(0.78 0.14 230 / 40%)"
+              strokeWidth="2"
               strokeLinecap="round"
             />
           </>
         )}
       </svg>
 
-      {/* your location */}
-      <div className="absolute" style={{ left: '22%', top: '80%' }}>
-        <span className="absolute -inset-4 rounded-full bg-primary/30 animate-pulse-ring" />
-        <span className="block size-3.5 rounded-full bg-primary ring-4 ring-primary/25" />
+      {/* Map Labels for Tamil Nadu Towns */}
+      <div className="absolute top-6 left-12 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pointer-events-none">
+        Chennai City Hub
+      </div>
+      <div className="absolute top-[32%] left-[28%] text-[10px] font-bold text-accent/70 uppercase tracking-wider pointer-events-none">
+        Tambaram
+      </div>
+      <div className="absolute top-[64%] left-[48%] text-[10px] font-bold text-primary/90 uppercase tracking-wider pointer-events-none">
+        NH-45 Chengalpattu
+      </div>
+      <div className="absolute top-1/2 right-4 text-[10px] font-semibold text-sky-400/40 uppercase tracking-widest pointer-events-none rotate-90">
+        Bay of Bengal
       </div>
 
-      {/* mechanic markers */}
+      {/* User Location Pin (I-95 / GST Road Highway) */}
+      <div className="absolute" style={{ left: '52.5%', top: '67.5%' }}>
+        <span className="block size-4 rounded-full bg-primary ring-4 ring-primary/30 shadow-lg" />
+        <span className="absolute left-5 top-0 surface-card rounded-md px-1.5 py-0.5 text-[9px] font-bold text-foreground whitespace-nowrap shadow-md">
+          Your Vehicle (NH-45)
+        </span>
+      </div>
+
+      {/* Tamil Mechanics Pins */}
       {[
-        { l: '80%', t: '17%', main: true },
-        { l: '58%', t: '44%' },
-        { l: '35%', t: '30%' },
+        { l: '33%', t: '35%', label: 'Karthik S. (Tech A)', main: true },
+        { l: '20%', t: '20%', label: 'Mugan R. (Tech B)' },
+        { l: '68%', t: '82%', label: 'Priya S. (Tech C)' },
       ].map((m, i) => (
         <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: m.l, top: m.t }}>
           <span
             className={cn(
-              'absolute -inset-3 rounded-full animate-pulse-ring',
-              m.main ? 'bg-accent/40' : 'bg-accent/20',
-            )}
-            style={{ animationDelay: `${i * 0.6}s` }}
-          />
-          <span
-            className={cn(
-              'grid size-6 place-items-center rounded-full text-[10px] font-bold',
-              m.main
-                ? 'bg-accent text-accent-foreground glow-accent'
-                : 'bg-accent/70 text-accent-foreground',
+              'grid size-7 place-items-center rounded-full text-xs font-bold shadow-lg border border-white/10',
+              m.main ? 'bg-accent text-accent-foreground ring-2 ring-accent/40' : 'bg-secondary text-foreground',
             )}
           >
             {String.fromCharCode(65 + i)}
@@ -91,8 +112,8 @@ export function MapCanvas({
         </div>
       ))}
 
-      {/* vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_50%,transparent_55%,oklch(0.14_0.02_264)_100%)]" />
+      {/* Vignette Overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_50%,transparent_50%,oklch(0.13_0.005_260)_100%)]" />
     </div>
   )
 }

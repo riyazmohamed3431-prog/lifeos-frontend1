@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Emergency, ScreenId } from '@/lib/lifeos'
+import { vehicles, mechanic, addHistoryLog } from '@/lib/lifeos'
 import { PhoneFrame } from '@/components/lifeos/phone-frame'
 import { WebsiteLayout } from '@/components/lifeos/website-layout'
 import { StatusBar } from '@/components/lifeos/status-bar'
@@ -25,6 +26,8 @@ export function LifeOSApp() {
   const [screen, setScreen] = useState<ScreenId>('home')
   const [user, setUser] = useState<AuthUser | null>(null)
   const [emergency, setEmergency] = useState<Emergency | null>(null)
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>(vehicles[0].id)
+  const [bookingNotes, setBookingNotes] = useState<string>('')
 
   useEffect(() => {
     // Check saved session on mount
@@ -52,6 +55,8 @@ export function LifeOSApp() {
     go('booking')
   }
 
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0]
+
   const showNav = TAB_SCREENS.includes(screen)
 
   const renderActiveScreen = () => (
@@ -65,18 +70,44 @@ export function LifeOSApp() {
         <BookingScreen
           initial={emergency}
           onBack={() => go('home')}
-          onConfirm={(e) => {
+          onConfirm={(e, vehicleId, notes) => {
             setEmergency(e)
+            setSelectedVehicleId(vehicleId)
+            setBookingNotes(notes)
             go('waiting')
           }}
         />
       )}
       {screen === 'waiting' && (
-        <WaitingScreen emergency={emergency} onFound={() => go('found')} />
+        <WaitingScreen
+          emergency={emergency}
+          vehicleName={selectedVehicle.name}
+          onFound={() => go('found')}
+        />
       )}
       {screen === 'found' && <FoundScreen onTrack={() => go('tracking')} />}
       {screen === 'tracking' && <TrackingScreen onArrived={() => go('payment')} />}
-      {screen === 'payment' && <PaymentScreen onDone={() => go('home')} />}
+      {screen === 'payment' && (
+        <PaymentScreen
+          emergency={emergency}
+          vehicleName={selectedVehicle.name}
+          onDone={() => {
+            if (emergency) {
+              addHistoryLog({
+                id: 'h-' + Date.now(),
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+                title: emergency.label,
+                vehicle: `${selectedVehicle.name} (${selectedVehicle.plate})`,
+                mechanic: mechanic.name,
+                amount: emergency.fee,
+                status: 'Completed',
+              })
+              setEmergency(null)
+            }
+            go('home')
+          }}
+        />
+      )}
       {screen === 'history' && <HistoryScreen />}
       {screen === 'profile' && <ProfileScreen user={user} onLogout={handleLogout} onLoginRedirect={() => go('login')} />}
     </div>
