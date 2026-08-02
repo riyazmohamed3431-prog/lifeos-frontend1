@@ -69,7 +69,7 @@ export function WebsiteLayout({
           {/* Logo */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => onNavigate('home')}
+              onClick={() => onNavigate(user ? 'home' : 'landing')}
               className="flex items-center gap-3 text-left group cursor-pointer"
             >
               <div className="grid size-10 place-items-center rounded-2xl bg-primary/20 text-primary border border-primary/30 transition-transform group-hover:scale-105">

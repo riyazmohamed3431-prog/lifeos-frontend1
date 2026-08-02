@@ -71,7 +71,7 @@ export function LoginScreen({
       const user = await loginWithGoogle()
       onLoginSuccess(user)
     } catch (err: any) {
-      setError('Google Sign-In failed. Please try again.')
+      setError(err?.message || 'Google Sign-In failed. Please try again.')
     } finally {
       setGoogleLoading(false)
     }
@@ -183,6 +183,21 @@ export function LoginScreen({
 
       {/* Guest Access & Toggle */}
       <div className="relative z-10 space-y-3 text-center">
+        <button
+  type="button"
+  onClick={handleGoogleSignIn}
+  disabled={googleLoading}
+  className="w-full rounded-2xl border border-gray-300 bg-white text-black font-semibold py-3 flex items-center justify-center gap-2 hover:bg-gray-100 transition-all"
+>
+  {googleLoading ? (
+    <Loader2 className="size-4 animate-spin" />
+  ) : (
+    <>
+      <span>🔵</span>
+      <span>Continue with Google</span>
+    </>
+  )}
+</button>
         <button
           type="button"
           onClick={handleGuestSignIn}

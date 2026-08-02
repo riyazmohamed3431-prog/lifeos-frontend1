@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import type { Emergency, ScreenId } from '@/lib/lifeos'
 import { vehicles, mechanic, addHistoryLog } from '@/lib/lifeos'
 import { PhoneFrame } from '@/components/lifeos/phone-frame'
 import { WebsiteLayout } from '@/components/lifeos/website-layout'
 import { StatusBar } from '@/components/lifeos/status-bar'
 import { BottomNav } from '@/components/lifeos/bottom-nav'
+import { LandingScreen } from '@/components/lifeos/screens/landing-screen'
+import { SplashScreen } from '@/components/lifeos/screens/splash-screen'
 import { LoginScreen } from '@/components/lifeos/screens/login-screen'
 import { HomeScreen } from '@/components/lifeos/screens/home-screen'
 import { MapScreen } from '@/components/lifeos/screens/map-screen'
@@ -23,7 +26,7 @@ const TAB_SCREENS: ScreenId[] = ['home', 'map', 'history', 'profile']
 
 export function LifeOSApp() {
   const [viewMode, setViewMode] = useState<'website' | 'mobile'>('website')
-  const [screen, setScreen] = useState<ScreenId>('home')
+  const [screen, setScreen] = useState<ScreenId>('landing')
   const [user, setUser] = useState<AuthUser | null>(null)
   const [emergency, setEmergency] = useState<Emergency | null>(null)
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(vehicles[0].id)
@@ -34,6 +37,7 @@ export function LifeOSApp() {
     const saved = getSavedSession()
     if (saved) {
       setUser(saved)
+      setScreen('home')
     }
   }, [])
 
@@ -47,7 +51,7 @@ export function LifeOSApp() {
   const handleLogout = async () => {
     await logoutUser()
     setUser(null)
-    go('login')
+    go('landing')
   }
 
   const startEmergency = (e: Emergency | null = null) => {
@@ -56,12 +60,49 @@ export function LifeOSApp() {
   }
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0]
-
   const showNav = TAB_SCREENS.includes(screen)
 
+  // Fullscreen Entry Views: Landing & Splash Screen
+  if (screen === 'landing') {
+    return (
+      <LandingScreen
+        onGetStarted={() => go('splash')}
+        onLoginClick={() => go('login')}
+      />
+    )
+  }
+
+  if (screen === 'splash') {
+    return <SplashScreen onFinish={() => go('login')} />
+  }
+
+  // Dedicated Fullscreen Login View (without website dashboard header)
+  if (screen === 'login') {
+    return (
+      <div className="relative min-h-screen w-full bg-[oklch(0.13_0.005_260)] text-foreground flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+        {/* Ambient Depth Elements */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
+
+        {/* Back Button to Landing Page */}
+        <button
+          onClick={() => go('landing')}
+          className="absolute top-6 left-6 z-50 flex items-center gap-2 rounded-full surface-glass px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground border border-white/10 transition-all cursor-pointer shadow-md"
+        >
+          <ArrowLeft className="size-4" />
+          <span>Back to Home</span>
+        </button>
+
+        {/* Centered Login Card Container */}
+        <div className="surface-card relative w-full max-w-md min-h-[580px] rounded-3xl border border-white/12 p-3 sm:p-5 shadow-2xl overflow-hidden backdrop-blur-2xl">
+          <LoginScreen onLoginSuccess={handleLoginSuccess} />
+        </div>
+      </div>
+    )
+  }
+
+  // Active App Screens (Logged In Dashboard)
   const renderActiveScreen = () => (
     <div key={screen} className="h-full w-full">
-      {screen === 'login' && <LoginScreen onLoginSuccess={handleLoginSuccess} />}
       {screen === 'home' && (
         <HomeScreen onEmergency={() => startEmergency(null)} onSelect={(e) => startEmergency(e)} />
       )}

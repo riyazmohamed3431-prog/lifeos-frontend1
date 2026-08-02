@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 
 export type ScreenId =
+  | 'landing'
+  | 'splash'
   | 'login'
   | 'home'
   | 'map'

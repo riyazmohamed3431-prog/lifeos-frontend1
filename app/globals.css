@@ -125,3 +125,56 @@
   0% { transform: translateY(12px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
+
+/* Opening Entrance Animations for Landing Page */
+@keyframes openingFadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes openingSlideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes openingScaleIn {
+  from { opacity: 0; transform: scale(0.94) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes openingFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-nav-entrance {
+  animation: openingFadeDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-hero-badge {
+  animation: openingSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.animate-hero-title {
+  animation: openingSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.animate-hero-desc {
+  animation: openingSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+.animate-hero-cta {
+  animation: openingSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both;
+}
+
+.animate-hero-highlights {
+  animation: openingSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+.animate-hero-visual {
+  animation: openingScaleIn 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+.animate-float-card {
+  animation: openingFloat 5s ease-in-out infinite;
+}
