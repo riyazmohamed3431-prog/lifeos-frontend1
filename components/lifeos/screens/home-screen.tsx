@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { emergencies, mechanic, vehicles, type Emergency } from '@/lib/lifeos'
+import { emergencies, mechanic, vehicles, nearbyMechanics, history, type Emergency } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
+import { BentoCard, BentoGrid, CategoryIconBox, HealthRadialGauge, WarmBadge, WarmButton, WarmCard, WarmProgress } from '@/components/ui/warm-components'
 import {
   MapPin,
   ShieldCheck,
@@ -16,197 +17,319 @@ import {
   Car,
   CheckCircle2,
   Navigation,
+  Sparkles,
+  Wrench,
+  BatteryCharging,
+  Gauge,
+  Phone,
+  Crown,
+  Award,
+  Shield,
+  Zap,
+  SunMedium,
+  FileCheck,
+  SlidersHorizontal,
+  CreditCard,
+  Lock,
+  User,
 } from 'lucide-react'
 import { CallModal } from '@/components/lifeos/call-modal'
+import { motion } from 'framer-motion'
+import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from '@/components/ui/framer-wrapper'
 
 export function HomeScreen({
   onEmergency,
   onSelect,
+  onNavigateProfile,
 }: {
   onEmergency: () => void
   onSelect: (e: Emergency) => void
+  onNavigateProfile?: () => void
 }) {
   const primaryVehicle = vehicles[0]
   const [calling, setCalling] = useState(false)
+  const [flashlightOn, setFlashlightOn] = useState(false)
+  const [shared, setShared] = useState(false)
+  const [activeSymptom, setActiveSymptom] = useState<string | null>(null)
+
+  const getCategoryColor = (id: string): 'indigo' | 'amber' | 'emerald' | 'coral' | 'rose' | 'purple' => {
+    switch (id) {
+      case 'tyre': return 'indigo'
+      case 'battery': return 'amber'
+      case 'engine': return 'emerald'
+      case 'fuel': return 'coral'
+      case 'accident': return 'rose'
+      case 'lockout': return 'purple'
+      default: return 'emerald'
+    }
+  }
+
+  const symptomChips = [
+    { label: 'Clicking sound on start', emergencyId: 'battery' },
+    { label: 'Tire flat / blowout', emergencyId: 'tyre' },
+    { label: 'Smoke under hood', emergencyId: 'overheat' },
+    { label: 'Key locked inside', emergencyId: 'lockout' },
+    { label: 'Ran out of fuel', emergencyId: 'fuel' },
+    { label: 'Engine stalled', emergencyId: 'engine' },
+  ]
+
+  const handleSymptomClick = (emId: string, label: string) => {
+    setActiveSymptom(label)
+    const target = emergencies.find((e) => e.id === emId) || emergencies[0]
+    setTimeout(() => {
+      onSelect(target)
+    }, 350)
+  }
+
+  const handleShareGps = () => {
+    setShared(true)
+    setTimeout(() => setShared(false), 2500)
+  }
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
+    <div className="relative h-full overflow-y-auto no-scrollbar pb-32 font-sans text-[#0F172A] dark:text-[#F8FAFC]">
       <AmbientBg tone="primary" />
 
-      <div className="relative z-10 px-5 pt-3 space-y-6">
-        {/* Header Bar: Tamil Nadu Location */}
-        <div className="flex items-center justify-between">
-          <div className="surface-glass flex items-center gap-2 rounded-full px-3.5 py-1.5 shadow-subtle">
-            <Navigation className="size-3.5 text-primary shrink-0 fill-primary/20" />
-            <span className="text-xs font-semibold text-foreground truncate max-w-[210px]">
-              GST Road NH-45 · Chengalpattu, TN
-            </span>
-          </div>
-
-          <div className="surface-glass flex items-center gap-1.5 rounded-full px-3 py-1.5 shadow-subtle">
-            <span className="size-2 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-semibold text-muted-foreground">TN Squad Active</span>
-          </div>
-        </div>
-
-        {/* Vehicle Garage Card */}
-        <div className="surface-card rounded-2xl p-4 flex items-center justify-between shadow-subtle">
-          <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-xl bg-primary/15 text-primary shrink-0">
-              <Car className="size-5 text-primary" />
+      <div className="relative z-10 px-4 sm:px-6 pt-3 space-y-6 max-w-5xl mx-auto">
+        
+        {/* EXECUTIVE GREETING HEADER */}
+        <FadeIn delay={0.05} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-white/10 pb-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">
+                Good Morning, <span className="text-[#0F766E]">Riyaz</span>
+              </h1>
+              <WarmBadge variant="emerald" className="shrink-0">
+                <span className="size-1.5 rounded-full bg-[#0F766E] animate-pulse" />
+                Protected by LifeOS
+              </WarmBadge>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-foreground">{primaryVehicle.name}</h3>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
-                  {primaryVehicle.plate}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Coverage Active · Tamil Nadu Tier I</p>
-            </div>
-          </div>
-          <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
-        </div>
-
-        {/* Primary Question & SOS Hero Action */}
-        <div className="surface-card rounded-3xl p-6 text-center space-y-5 border border-white/10 shadow-xl">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              How can we assist you?
-            </h1>
-            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
-              Tap for immediate priority dispatch across Tamil Nadu highways.
+            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 font-medium break-words">
+              Autonomous Roadside Command Center · GST Road NH-45 Highway Corridor
             </p>
           </div>
 
-          {/* Primary SOS Emergency Button */}
-          <div className="py-2 flex justify-center">
-            <button
-              onClick={onEmergency}
-              className="group relative flex flex-col items-center justify-center size-40 rounded-full bg-destructive text-destructive-foreground font-bold shadow-2xl transition-all duration-200 active:scale-95 hover:bg-destructive/90 cursor-pointer"
-              aria-label="Request Instant Emergency Roadside Assistance"
-            >
-              <AlertTriangle className="size-10 mb-1 transition-transform group-hover:scale-110" strokeWidth={2.2} />
-              <span className="text-base font-extrabold tracking-wider">REQUEST HELP</span>
-              <span className="text-[10px] font-medium opacity-85 mt-0.5">1-Tap TN Emergency Dispatch</span>
-            </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <div className="bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-md flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] shadow-sm">
+              <Navigation className="size-3.5 text-[#4338CA] animate-pulse" />
+              <span>Chengalpattu Hub</span>
+            </div>
           </div>
+        </FadeIn>
 
-          <div className="flex items-center justify-center gap-4 text-xs font-medium text-muted-foreground pt-1 border-t border-white/5">
-            <span className="flex items-center gap-1">
-              <Clock className="size-3.5 text-accent" /> ~8 min avg arrival
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="size-3.5 text-emerald-400" /> TN Highway Squad
-            </span>
-          </div>
-        </div>
-
-        {/* Quick Roadside Assistance Options */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-foreground">Roadside Services</h2>
-            <button
-              onClick={onEmergency}
-              className="text-xs font-semibold text-accent hover:underline flex items-center gap-0.5"
-            >
-              View all <ChevronRight className="size-3.5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {emergencies.slice(0, 6).map((e) => {
-              const Icon = e.icon
-              return (
-                <button
-                  key={e.id}
-                  onClick={() => onSelect(e)}
-                  className="surface-card hover:bg-secondary/70 rounded-2xl p-4 text-left transition-all duration-150 active:scale-[0.98] cursor-pointer flex flex-col justify-between h-32 border border-white/5"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
-                      <Icon className="size-5" />
-                    </div>
-                    <span className="text-[11px] font-semibold text-accent px-2 py-0.5 rounded-full bg-accent/10">
-                      ~{e.eta}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-foreground">{e.label}</h3>
-                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">{e.sub}</p>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Nearby Tamil Mechanics Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-foreground">Assigned Tamil Nadu Responder</h2>
-            <span className="text-xs text-muted-foreground">GST Road Squad</span>
-          </div>
-
-          <div className="surface-card rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="grid size-12 place-items-center rounded-full bg-primary/20 text-primary font-bold text-sm border border-primary/30">
-                  KS
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">{mechanic.name}</h3>
-                  <p className="text-xs text-muted-foreground">{mechanic.specialty}</p>
-                </div>
+        {/* BENTO GRID LAYOUT SYSTEM */}
+        <BentoGrid>
+          
+          {/* BENTO TILE 1: Large Deep Emerald Hero Card (colSpan 8) */}
+          <BentoCard colSpan={8} variant="emerald" className="p-5 sm:p-7 space-y-5 shadow-xl min-w-0">
+            <div className="flex items-center justify-between gap-2 border-b border-white/20 pb-4 min-w-0">
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-white/70 block truncate">Connected Vehicle Telemetry</span>
+                <h2 className="text-xl font-black text-white truncate">{primaryVehicle.name}</h2>
+                <p className="text-xs text-white/80 font-mono mt-0.5 truncate">{primaryVehicle.plate} · Midnight Silver</p>
               </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1 text-amber-400 text-xs font-bold justify-end">
-                  <Star className="size-3.5 fill-amber-400 stroke-amber-400" />
-                  <span>{mechanic.rating}</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{mechanic.jobs} jobs</p>
-              </div>
+              <WarmBadge variant="amber" className="bg-white/20 text-white border-white/30 shrink-0">
+                84% Battery Charge
+              </WarmBadge>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5 text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <MapPin className="size-3.5 text-primary" /> {mechanic.distanceKm} km away (GST Road)
-              </span>
-              <button
-                onClick={() => setCalling(true)}
-                className="font-bold text-primary hover:underline"
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 text-white">
+              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Max Range</p>
+                <p className="text-sm sm:text-base font-black mt-0.5 truncate">420 km</p>
+              </div>
+              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Tyre Pressure</p>
+                <p className="text-sm sm:text-base font-black mt-0.5 truncate">36 PSI</p>
+              </div>
+              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Fastest Rescue</p>
+                <p className="text-sm sm:text-base font-black mt-0.5 text-[#F59E0B] truncate">~8 Mins</p>
+              </div>
+            </div>
+          </BentoCard>
+
+          {/* BENTO TILE 2: Safety Radial Gauge Tile (colSpan 4) */}
+          <BentoCard colSpan={4} variant="white" className="p-5 flex flex-col items-center justify-center text-center border border-[#E2E8F0]">
+            <HealthRadialGauge score={98} size={115} strokeWidth={9} label="Vehicle Health Score" />
+            <WarmBadge variant="green" className="mt-3">Top 1% Safe Driver</WarmBadge>
+          </BentoCard>
+
+          {/* BENTO TILE 3: Climate & Location Capsule (colSpan 4) */}
+          <BentoCard colSpan={4} variant="indigo" className="p-5 space-y-3 border border-[#4338CA]/25">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#4338CA]">Highway Corridor</span>
+              <SunMedium className="size-4 text-[#F59E0B]" />
+            </div>
+            <div>
+              <p className="text-base font-black text-[#0F172A] dark:text-[#F8FAFC]">29°C Clear Weather</p>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] font-medium mt-0.5">NH-45 GST Road Traffic Flow Normal</p>
+            </div>
+            <WarmBadge variant="indigo">All Patrol Units Ready</WarmBadge>
+          </BentoCard>
+
+          {/* BENTO TILE 4: Quick Emergency Actions & SOS Trigger (colSpan 8) */}
+          <BentoCard colSpan={8} variant="rose" className="p-6 space-y-5 border border-[#E11D48]/30 shadow-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <WarmBadge variant="rose">Priority Dispatch</WarmBadge>
+                <h3 className="text-lg font-black text-[#0F172A] dark:text-[#F8FAFC]">Experiencing a Highway Emergency?</h3>
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8]">1-tap dispatch sends certified rescue squads with live GPS telemetry.</p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={onEmergency}
+                className="flex flex-col items-center justify-center size-28 rounded-full bg-gradient-to-tr from-[#E11D48] via-[#F97316] to-[#F59E0B] text-white font-black shadow-xl shadow-[#E11D48]/30 transition-all cursor-pointer border-3 border-white/20 shrink-0 self-center"
               >
-                Call {mechanic.name.split(' ')[0]}
+                <AlertTriangle className="size-7 mb-0.5" strokeWidth={2.4} />
+                <span className="text-xs font-black tracking-wider">REQUEST SOS</span>
+              </motion.button>
+            </div>
+
+            {/* Quick Symptom Chips Carousel */}
+            <div className="pt-2 border-t border-[#E11D48]/20 space-y-2">
+              <p className="text-[11px] font-bold text-[#475569] dark:text-[#94A3B8] uppercase">Quick Symptom Triage:</p>
+              <div className="flex flex-wrap gap-2">
+                {symptomChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSymptomClick(chip.emergencyId, chip.label)}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer border ${
+                      activeSymptom === chip.label
+                        ? 'bg-[#E11D48] text-white border-[#E11D48] shadow-sm'
+                        : 'bg-white dark:bg-[#18181B] text-[#475569] dark:text-[#94A3B8] hover:text-foreground border-[#E2E8F0]'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </BentoCard>
+
+          {/* BENTO TILE 5: Services Grid (colSpan 12) */}
+          <BentoCard colSpan={12} variant="white" className="p-4 sm:p-6 space-y-4 border border-[#E2E8F0]">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#0F766E] truncate">Roadside Services & Fixed Rates</h3>
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8] truncate">Certified responders on stand-by with 24/7 coverage</p>
+              </div>
+              <WarmButton variant="ghost" size="sm" onClick={onEmergency} className="shrink-0">
+                View All ({emergencies.length}) <ChevronRight className="size-3.5" />
+              </WarmButton>
+            </div>
+
+            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+              {emergencies.slice(0, 4).map((e) => {
+                const color = getCategoryColor(e.id)
+                const Icon = e.icon
+                return (
+                  <StaggerItem key={e.id}>
+                    <WarmCard
+                      onClick={() => onSelect(e)}
+                      className="hover:border-[#0F766E]/40 flex flex-col justify-between min-h-[135px] sm:min-h-[140px] p-3 sm:p-4 border border-[#E2E8F0] group min-w-0 overflow-hidden"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+                        <CategoryIconBox icon={Icon} color={color} className="shrink-0 size-9 sm:size-11" />
+                        <span className="text-[10px] font-mono font-bold text-[#0F766E] bg-[#0F766E]/10 dark:bg-[#0F766E]/20 px-2 py-0.5 rounded-full border border-[#0F766E]/20 shrink-0">
+                          ₹{e.fee}
+                        </span>
+                      </div>
+                      <div className="min-w-0 mt-2">
+                        <h4 className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] group-hover:text-[#0F766E] transition-colors line-clamp-2 leading-snug">{e.label}</h4>
+                        <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] truncate mt-0.5">{e.sub}</p>
+                      </div>
+                    </WarmCard>
+                  </StaggerItem>
+                )
+              })}
+            </StaggerContainer>
+          </BentoCard>
+
+          {/* BENTO TILE 6: Profile Options Dashboard Quick Grid (colSpan 6) */}
+          <BentoCard colSpan={6} variant="purple" className="p-4 sm:p-5 space-y-4 border border-[#8B5CF6]/30 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#8B5CF6] truncate">Dashboard Profile Options</h3>
+              <WarmBadge variant="purple" className="shrink-0">Executive VIP</WarmBadge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={onNavigateProfile}
+                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
+              >
+                <CategoryIconBox icon={Car} color="blue" className="size-8" />
+                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">My Garage</p>
+                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">3 Registered Vehicles</p>
+              </button>
+
+              <button
+                onClick={onNavigateProfile}
+                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
+              >
+                <CategoryIconBox icon={CreditCard} color="emerald" className="size-8" />
+                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">Payments</p>
+                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">HDFC Visa & UPI</p>
+              </button>
+
+              <button
+                onClick={onNavigateProfile}
+                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
+              >
+                <CategoryIconBox icon={Phone} color="coral" className="size-8" />
+                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">SOS Contacts</p>
+                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">2 Verified Receivers</p>
+              </button>
+
+              <button
+                onClick={onNavigateProfile}
+                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
+              >
+                <CategoryIconBox icon={Lock} color="purple" className="size-8" />
+                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">Security</p>
+                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">256-Bit SSL Telemetry</p>
               </button>
             </div>
-          </div>
-        </div>
+          </BentoCard>
 
-        {/* Quick Emergency Contacts & Tools Bar */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-bold text-foreground px-1">Emergency Actions</h2>
-          <div className="grid grid-cols-3 gap-2.5">
-            <button
-              onClick={() => setCalling(true)}
-              className="surface-card hover:bg-secondary/60 rounded-2xl p-3.5 flex flex-col items-center gap-1.5 text-center transition-all cursor-pointer"
-            >
-              <PhoneCall className="size-5 text-destructive" />
-              <span className="text-xs font-semibold text-foreground">Call Responder</span>
-            </button>
-            <button className="surface-card hover:bg-secondary/60 rounded-2xl p-3.5 flex flex-col items-center gap-1.5 text-center transition-all cursor-pointer">
-              <Share2 className="size-5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">Share Live</span>
-            </button>
-            <button className="surface-card hover:bg-secondary/60 rounded-2xl p-3.5 flex flex-col items-center gap-1.5 text-center transition-all cursor-pointer">
-              <Flashlight className="size-5 text-amber-400" />
-              <span className="text-xs font-semibold text-foreground">Flashlight</span>
-            </button>
-          </div>
-        </div>
+          {/* BENTO TILE 7: Nearby Rescue Squads (colSpan 6) */}
+          <BentoCard colSpan={6} variant="white" className="p-4 sm:p-5 space-y-4 border border-[#E2E8F0] min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#0F766E] truncate">Active Certified Rescue Fleet</h3>
+              <WarmBadge variant="emerald" className="shrink-0">4 Responders</WarmBadge>
+            </div>
+
+            <div className="space-y-3">
+              {nearbyMechanics.slice(0, 2).map((m) => (
+                <div key={m.tag} className="p-3 rounded-2xl bg-[#F1F5F9] dark:bg-[#27272A] border border-[#E2E8F0] dark:border-white/10 space-y-2 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <CategoryIconBox icon={ShieldCheck} color="emerald" className="shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] truncate">{m.name}</h4>
+                        <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] truncate w-full">{m.spec}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="flex items-center gap-1 text-[#F59E0B] text-xs font-bold justify-end">
+                        <Star className="size-3.5 fill-[#F59E0B] stroke-[#F59E0B]" />
+                        <span>{m.rating}</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-[#0F766E] block">{m.eta} ETA</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </BentoCard>
+
+        </BentoGrid>
+
       </div>
 
-      {/* Live Calling Overlay Modal */}
+      {/* Live Calling Modal */}
       <CallModal
         isOpen={calling}
         onClose={() => setCalling(false)}

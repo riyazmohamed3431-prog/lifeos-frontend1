@@ -5,6 +5,7 @@ import { mechanic } from '@/lib/lifeos'
 import { MapCanvas } from '@/components/lifeos/map-canvas'
 import { Phone, MessageSquare, ShieldAlert, Star, Navigation } from 'lucide-react'
 import { CallModal } from '@/components/lifeos/call-modal'
+import { CategoryIconBox, WarmBadge, WarmButton, WarmCard } from '@/components/ui/warm-components'
 
 export function TrackingScreen({ onArrived }: { onArrived: () => void }) {
   const [progress, setProgress] = useState(0.1)
@@ -29,85 +30,77 @@ export function TrackingScreen({ onArrived }: { onArrived: () => void }) {
   const distance = (mechanic.distanceKm * (1 - progress)).toFixed(1)
 
   return (
-    <div className="relative h-full overflow-hidden">
-      {/* Map layer depicting Tamil Nadu NH-45 GST Road */}
-      <MapCanvas className="absolute inset-0 h-full w-full" showRoute progress={progress} />
+    <div className="relative h-full overflow-hidden font-sans text-[#0F172A] dark:text-[#F8FAFC]">
+      {/* Royal Blue + Cyan Apple Maps Style Container */}
+      <div className="absolute inset-0 size-full">
+        <MapCanvas className="h-full w-full" showRoute progress={progress} />
+      </div>
 
       {/* Top Header Card */}
-      <div className="absolute inset-x-0 top-0 z-20 px-5 pt-3">
-        <div className="surface-card flex items-center justify-between rounded-2xl p-4 shadow-xl border border-white/10">
+      <div className="absolute inset-x-0 top-0 z-20 px-4 sm:px-6 pt-3">
+        <WarmCard variant="blue" className="p-4 flex items-center justify-between shadow-lg border border-[#2563EB]/30 backdrop-blur-2xl bg-white/90 dark:bg-[#151C2C]/90">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              {progress >= 1 ? 'Responder Status' : 'Estimated Arrival'}
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]">
+              {progress >= 1 ? 'Dispatch Status' : 'Estimated Rescue Arrival'}
             </p>
-            <p className="text-xl font-extrabold text-foreground tabular-nums">
-              {progress >= 1 ? 'Arrived at Location' : `${etaMin} mins remaining`}
+            <p className="text-lg sm:text-xl font-black text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+              {progress >= 1 ? 'Technician Arrived' : `${etaMin} mins remaining`}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Location</p>
-            <p className="text-xs font-bold text-accent">NH-45 · {distance} km</p>
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">Distance</p>
+            <p className="text-xs sm:text-sm font-mono font-bold text-[#2563EB]">NH-45 · {distance} km</p>
           </div>
-        </div>
+        </WarmCard>
       </div>
 
-      {/* Floating emergency hotline button */}
+      {/* Floating Emergency Hotline Trigger */}
       <button
         onClick={() => setCalling(true)}
-        aria-label="Contact Emergency Services"
-        className="absolute right-5 top-24 z-20 grid size-12 place-items-center rounded-2xl bg-destructive text-destructive-foreground shadow-lg hover:bg-destructive/90 transition-all cursor-pointer"
+        aria-label="Contact Emergency Dispatcher"
+        className="absolute right-5 top-24 z-20 grid size-12 place-items-center rounded-2xl bg-[#EF4444] text-white shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/20"
       >
         <ShieldAlert className="size-6" />
       </button>
 
-      {/* Bottom Sheet Card */}
-      <div className="absolute inset-x-0 bottom-0 z-20 px-5 pb-6">
-        <div className="surface-card rounded-3xl p-5 space-y-4 shadow-2xl border border-white/10">
+      {/* Bottom Sheet Driver Profile Card */}
+      <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 pb-6">
+        <WarmCard variant="white" className="p-5 space-y-4 shadow-2xl border border-[#E2E8F0] backdrop-blur-2xl bg-white/95 dark:bg-[#151C2C]/95">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="grid size-12 place-items-center rounded-2xl bg-primary/20 text-primary font-bold text-sm border border-primary/30">
-                KS
-              </div>
+              <CategoryIconBox icon={Navigation} color="blue" />
               <div>
-                <h3 className="text-sm font-bold text-foreground">{mechanic.name}</h3>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                  <Star className="size-3.5 fill-amber-400 stroke-amber-400" />
-                  <span className="font-semibold text-amber-400">{mechanic.rating}</span>
-                  <span>· Tamil Nadu Squad</span>
+                <h3 className="text-sm font-black text-[#0F172A] dark:text-[#F8FAFC]">{mechanic.name}</h3>
+                <div className="flex items-center gap-1.5 text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                  <Star className="size-3.5 fill-[#F59E0B] stroke-[#F59E0B]" />
+                  <span className="font-bold text-[#F59E0B]">{mechanic.rating}</span>
+                  <span>· Certified Responder</span>
                 </div>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent border border-accent/20">
-              <span className="size-1.5 rounded-full bg-accent" />
+            <WarmBadge variant="blue">
+              <span className="size-2 rounded-full bg-[#2563EB] animate-ping" />
               En Route
-            </span>
+            </WarmBadge>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-secondary/60 px-3.5 py-2 text-xs text-muted-foreground">
-            <span>Rig: {mechanic.vehicleRig}</span>
-            <span className="font-semibold text-foreground flex items-center gap-1">
-              <Navigation className="size-3 text-primary" /> GST Road GPS
+          <div className="flex items-center justify-between rounded-2xl bg-[#F1F5F9] dark:bg-[#1E293B] px-4 py-2.5 text-xs text-[#475569] dark:text-[#94A3B8] border border-[#E2E8F0]">
+            <span className="font-mono">Rig: {mechanic.vehicleRig}</span>
+            <span className="font-bold text-[#2563EB] flex items-center gap-1">
+              <Navigation className="size-3.5 text-[#2563EB]" /> Live GPS Stream
             </span>
           </div>
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <button
-              onClick={() => setCalling(true)}
-              className="rounded-xl bg-primary text-primary-foreground py-3 flex items-center justify-center gap-2 text-xs font-bold shadow-md hover:bg-primary/90 transition-all cursor-pointer"
-            >
-              <Phone className="size-4" />
-              <span>Call {mechanic.name.split(' ')[0]}</span>
-            </button>
-            <button
-              onClick={() => setCalling(true)}
-              className="surface-card hover:bg-secondary/70 rounded-xl py-3 flex items-center justify-center gap-2 text-xs font-bold text-foreground transition-all cursor-pointer"
-            >
-              <MessageSquare className="size-4 text-accent" />
-              <span>Send Message</span>
-            </button>
+            <WarmButton variant="secondary" size="lg" className="shadow-md" onClick={() => setCalling(true)}>
+              <Phone className="size-4" /> Call {mechanic.name.split(' ')[0]}
+            </WarmButton>
+            <WarmButton variant="ghost" size="lg" onClick={() => setCalling(true)}>
+              <MessageSquare className="size-4 text-[#F59E0B]" /> Message Unit
+            </WarmButton>
           </div>
-        </div>
+        </WarmCard>
       </div>
 
       {/* Live Calling Modal */}

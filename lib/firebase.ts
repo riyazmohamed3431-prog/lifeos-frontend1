@@ -1,8 +1,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import {
   getAuth,
-  setPersistence,
   browserLocalPersistence,
+  setPersistence,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -23,16 +23,35 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-K7ESWKL7RD',
 }
 
-// Initialize Firebase App singleton safely
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-export const auth = getAuth(app)
+// Declare global type for HMR singleton caching
+const globalForFirebase = globalThis as unknown as {
+  app?: ReturnType<typeof initializeApp>
+  auth?: ReturnType<typeof getAuth>
+  googleProvider?: GoogleAuthProvider
+}
 
-// Use localStorage persistence to prevent IndexedDB "Database is closing/hidden" errors on tab hide/HMR
+// Initialize Firebase App singleton safely
+export const app = globalForFirebase.app || (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig))
+if (process.env.NODE_ENV !== 'production') {
+  globalForFirebase.app = app
+}
+
+// Initialize Auth singleton safely and set persistence
+export const auth = globalForFirebase.auth || getAuth(app)
+if (process.env.NODE_ENV !== 'production') {
+  globalForFirebase.auth = auth
+}
+
 if (typeof window !== 'undefined') {
   setPersistence(auth, browserLocalPersistence).catch(() => {})
 }
 
-export const googleProvider = new GoogleAuthProvider()
+// Initialize GoogleAuthProvider singleton safely
+export const googleProvider = globalForFirebase.googleProvider || new GoogleAuthProvider()
+if (process.env.NODE_ENV !== 'production') {
+  globalForFirebase.googleProvider = googleProvider
+}
+
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 })
@@ -79,21 +98,39 @@ export async function loginWithEmail(email: string, pass: string): Promise<AuthU
   }
 }
 
+export type RegisterParams = {
+  fullName: string
+  email: string
+  phoneNumber: string
+  password: string
+  vehicleType: string
+  vehicleBrand: string
+  vehicleModel: string
+  vehicleNumber: string
+  emergencyContact: string
+}
+
 // Helper: Email & Password Sign Up
-export async function registerWithEmail(email: string, pass: string): Promise<AuthUser> {
+export async function registerWithEmail(
+  params: string | RegisterParams,
+  pass?: string
+): Promise<AuthUser> {
+  const email = typeof params === 'string' ? params : params.email
+  const password = typeof params === 'string' ? pass || '' : params.password
+
   try {
-    const res = await createUserWithEmailAndPassword(auth, email, pass)
+    const res = await createUserWithEmailAndPassword(auth, email, password)
     return {
       uid: res.user.uid,
       email: res.user.email,
-      displayName: res.user.displayName || email.split('@')[0],
+      displayName: typeof params === 'string' ? (res.user.displayName || email.split('@')[0]) : params.fullName,
     }
   } catch (error: any) {
     if (error?.code === 'auth/invalid-api-key' || error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
       const demoUser: AuthUser = {
         uid: 'demo-' + Date.now(),
         email: email,
-        displayName: email.split('@')[0],
+        displayName: typeof params === 'string' ? email.split('@')[0] : params.fullName,
       }
       if (typeof window !== 'undefined') {
         localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
@@ -104,32 +141,36 @@ export async function registerWithEmail(email: string, pass: string): Promise<Au
   }
 }
 
-// Helper: Google Sign In
 export async function loginWithGoogle(): Promise<AuthUser> {
+  console.log("=== GOOGLE SIGN-IN DEBUG ===");
+  console.log("auth:", auth);
+  console.log("auth constructor name:", auth?.constructor?.name);
+  console.log("googleProvider:", googleProvider);
+  console.log("googleProvider constructor name:", googleProvider?.constructor?.name);
+  console.log("googleProvider instanceof GoogleAuthProvider:", googleProvider instanceof GoogleAuthProvider);
+  console.log("============================");
   try {
-    const res = await signInWithPopup(auth, googleProvider)
+    const result = await signInWithPopup(auth, googleProvider)
+
+    console.log("Google Sign-In Success:", result)
+
     return {
-      uid: res.user.uid,
-      email: res.user.email,
-      displayName: res.user.displayName || res.user.email?.split('@')[0] || 'Google User',
+      uid: result.user.uid,
+      email: result.user.email,
+      displayName:
+        result.user.displayName ||
+        result.user.email?.split("@")[0] ||
+        "Google User",
     }
   } catch (error: any) {
-    console.error('Google Sign-In Error:', error)
-    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
-      throw new Error('Google Sign-In popup was closed before completing login.')
-    }
-    if (error?.code === 'auth/invalid-api-key' || error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-      const demoUser: AuthUser = {
-        uid: 'google-demo-' + Date.now(),
-        email: 'driver@lifeos.app',
-        displayName: 'LifeOS Driver',
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
-      }
-      return demoUser
-    }
-    throw new Error(error?.message || 'Google Sign-In failed. Please try again.')
+    console.log("========== FULL GOOGLE ERROR ==========");
+    console.log(error);
+    console.log("CODE:", error?.code);
+    console.log("MESSAGE:", error?.message);
+    console.log("STACK:", error?.stack);
+    console.log("======================================");
+
+    throw error;
   }
 }
 

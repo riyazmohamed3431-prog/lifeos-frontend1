@@ -26,9 +26,9 @@ const TAB_SCREENS: ScreenId[] = ['home', 'map', 'history', 'profile']
 
 export function LifeOSApp() {
   const [viewMode, setViewMode] = useState<'website' | 'mobile'>('website')
-  const [screen, setScreen] = useState<ScreenId>('landing')
+  const [screen, setScreen] = useState<ScreenId>('login')
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [emergency, setEmergency] = useState<Emergency | null>(null)
+  const [selectedEmergencies, setSelectedEmergencies] = useState<Emergency[]>([])
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(vehicles[0].id)
   const [bookingNotes, setBookingNotes] = useState<string>('')
 
@@ -54,8 +54,14 @@ export function LifeOSApp() {
     go('landing')
   }
 
-  const startEmergency = (e: Emergency | null = null) => {
-    setEmergency(e)
+  const startEmergency = (initial?: Emergency | Emergency[] | null) => {
+    if (Array.isArray(initial) && initial.length > 0) {
+      setSelectedEmergencies(initial)
+    } else if (initial && !Array.isArray(initial)) {
+      setSelectedEmergencies([initial])
+    } else {
+      setSelectedEmergencies([])
+    }
     go('booking')
   }
 
@@ -104,15 +110,19 @@ export function LifeOSApp() {
   const renderActiveScreen = () => (
     <div key={screen} className="h-full w-full">
       {screen === 'home' && (
-        <HomeScreen onEmergency={() => startEmergency(null)} onSelect={(e) => startEmergency(e)} />
+        <HomeScreen
+          onEmergency={() => startEmergency(null)}
+          onSelect={(e) => startEmergency(e)}
+          onNavigateProfile={() => go('profile')}
+        />
       )}
       {screen === 'map' && <MapScreen onEmergency={() => startEmergency(null)} />}
       {screen === 'booking' && (
         <BookingScreen
-          initial={emergency}
+          initial={selectedEmergencies}
           onBack={() => go('home')}
-          onConfirm={(e, vehicleId, notes) => {
-            setEmergency(e)
+          onConfirm={(issues, vehicleId, notes) => {
+            setSelectedEmergencies(issues)
             setSelectedVehicleId(vehicleId)
             setBookingNotes(notes)
             go('waiting')
@@ -121,7 +131,7 @@ export function LifeOSApp() {
       )}
       {screen === 'waiting' && (
         <WaitingScreen
-          emergency={emergency}
+          emergencies={selectedEmergencies}
           vehicleName={selectedVehicle.name}
           onFound={() => go('found')}
         />
@@ -130,20 +140,22 @@ export function LifeOSApp() {
       {screen === 'tracking' && <TrackingScreen onArrived={() => go('payment')} />}
       {screen === 'payment' && (
         <PaymentScreen
-          emergency={emergency}
+          emergencies={selectedEmergencies}
           vehicleName={selectedVehicle.name}
           onDone={() => {
-            if (emergency) {
+            if (selectedEmergencies.length > 0) {
+              const combinedTitle = selectedEmergencies.map((e) => e.label).join(' + ')
+              const combinedFee = selectedEmergencies.reduce((acc, e) => acc + e.fee, 0)
               addHistoryLog({
                 id: 'h-' + Date.now(),
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-                title: emergency.label,
+                title: combinedTitle,
                 vehicle: `${selectedVehicle.name} (${selectedVehicle.plate})`,
                 mechanic: mechanic.name,
-                amount: emergency.fee,
+                amount: combinedFee,
                 status: 'Completed',
               })
-              setEmergency(null)
+              setSelectedEmergencies([])
             }
             go('home')
           }}

@@ -1,9 +1,10 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Space_Grotesk, Geist_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
-const spaceGrotesk = Space_Grotesk({
+const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
 })
@@ -14,15 +15,15 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'LifeOS — Roadside Command Center',
+  title: 'LifeOS — Roadside Operating System',
   description:
-    'The operating system for roadside emergencies. Calm, intelligent, always with you.',
+    'The premier operating system for roadside emergencies. Intelligent, instant, effortlessly designed.',
   generator: 'v0.app',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0a0e1a',
-  colorScheme: 'dark',
+  themeColor: '#0b0d13',
+  colorScheme: 'dark light',
   userScalable: false,
   width: 'device-width',
   initialScale: 1,
@@ -35,11 +36,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${geistMono.variable} bg-background`}>
-      <body className="antialiased font-sans">
-        {children}
+    <html lang="en" className={`${jakartaSans.variable} ${geistMono.variable} dark`} suppressHydrationWarning>
+      <body className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
+        <ThemeProvider defaultTheme="dark" storageKey="lifeos-theme">
+          {children}
+        </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
 }
+
