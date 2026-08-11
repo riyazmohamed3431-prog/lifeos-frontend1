@@ -26,8 +26,10 @@ const TAB_SCREENS: ScreenId[] = ['home', 'map', 'history', 'profile']
 
 export function LifeOSApp() {
   const [viewMode, setViewMode] = useState<'website' | 'mobile'>('website')
-  const [screen, setScreen] = useState<ScreenId>('landing')
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [screen, setScreen] = useState<ScreenId>('landing')
+  const [mounted, setMounted] = useState(false)
+
   const [selectedEmergencies, setSelectedEmergencies] = useState<Emergency[]>([])
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(vehicles[0].id)
   const [bookingNotes, setBookingNotes] = useState<string>('')
@@ -92,6 +94,26 @@ export function LifeOSApp() {
   }
 
   useEffect(() => {
+    setMounted(true)
+    // Check URL query parameters for mobile integration auto-login
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const autoEmail = urlParams.get('email')
+      const autoLogin = urlParams.get('login')
+
+      if (autoEmail && autoLogin === 'true') {
+        const autoUser = {
+          uid: 'mobile-' + Date.now(),
+          email: autoEmail,
+          displayName: autoEmail.split('@')[0],
+        }
+        localStorage.setItem('lifeos_demo_user', JSON.stringify(autoUser))
+        setUser(autoUser)
+        setScreen('home')
+        return
+      }
+    }
+
     // Check saved session on mount
     const saved = getSavedSession()
     if (saved) {

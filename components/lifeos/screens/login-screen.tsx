@@ -70,7 +70,17 @@ export function LoginScreen({
     try {
       let user: AuthUser
       if (isSignUp) {
-        user = await registerWithEmail(identifier.trim(), password)
+        user = await registerWithEmail({
+          fullName: fullName.trim() || identifier.trim().split('@')[0],
+          email: identifier.trim(),
+          password,
+          phoneNumber: '',
+          vehicleType: '',
+          vehicleBrand: '',
+          vehicleModel: '',
+          vehicleNumber: '',
+          emergencyContact: '',
+        })
         setSuccessMsg('Account created successfully!')
       } else {
         user = await loginWithEmail(identifier.trim(), password)

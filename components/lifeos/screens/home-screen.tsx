@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { emergencies, mechanic, vehicles, nearbyMechanics, type Emergency, type Vehicle } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
 import { BentoCard, BentoGrid, CategoryIconBox, HealthRadialGauge, WarmButton, WarmCard } from '@/components/ui/warm-components'
@@ -50,7 +50,12 @@ export function HomeScreen({
   onSelect: (e: Emergency) => void
   onNavigateProfile?: () => void
 }) {
-  const primaryVehicle = (() => {
+  const [primaryVehicle, setPrimaryVehicle] = useState<Vehicle>(userVehicles[0] || vehicles[0])
+  const [calling, setCalling] = useState(false)
+  const [activeSymptom, setActiveSymptom] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'responders' | 'rates' | 'garage'>('telemetry')
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('lifeos_demo_user')
       let emailStr = 'guest'
@@ -61,13 +66,13 @@ export function HomeScreen({
       }
       const primaryId = localStorage.getItem(`lifeos_primary_vehicle_${emailStr}`)
       const found = userVehicles.find((v) => v.id === primaryId)
-      return found || userVehicles[0] || vehicles[0]
+      if (found) {
+        setPrimaryVehicle(found)
+      } else if (userVehicles[0]) {
+        setPrimaryVehicle(userVehicles[0])
+      }
     }
-    return userVehicles[0] || vehicles[0]
-  })()
-  const [calling, setCalling] = useState(false)
-  const [activeSymptom, setActiveSymptom] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'telemetry' | 'responders' | 'rates' | 'garage'>('telemetry')
+  }, [userVehicles])
 
   const getCategoryColor = (id: string): 'indigo' | 'amber' | 'emerald' | 'coral' | 'rose' | 'purple' => {
     switch (id) {

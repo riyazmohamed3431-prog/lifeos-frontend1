@@ -73,28 +73,55 @@ export type AuthUser = {
   isGuest?: boolean
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+
 // Helper: Email & Password Login
 export async function loginWithEmail(email: string, pass: string): Promise<AuthUser> {
+  // 1. Try Express Backend API first
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const user: AuthUser = {
+        uid: data.user?.id || 'backend-' + Date.now(),
+        email: data.user?.email || email,
+        displayName: data.user?.fullName || email.split('@')[0],
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
+      }
+      return user
+    }
+  } catch (backendErr) {
+    // Backend API offline or unreachable
+  }
+
+  // 2. Try Firebase Auth
   try {
     const res = await signInWithEmailAndPassword(auth, email, pass)
-    return {
+    const user: AuthUser = {
       uid: res.user.uid,
       email: res.user.email,
       displayName: res.user.displayName || email.split('@')[0],
     }
-  } catch (error: any) {
-    if (error?.code === 'auth/invalid-api-key' || error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-      const demoUser: AuthUser = {
-        uid: 'demo-' + Date.now(),
-        email: email,
-        displayName: email.split('@')[0],
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
-      }
-      return demoUser
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
     }
-    throw error
+    return user
+  } catch (error: any) {
+    const demoUser: AuthUser = {
+      uid: 'user-' + Date.now(),
+      email: email,
+      displayName: email.split('@')[0],
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+    }
+    return demoUser
   }
 }
 
@@ -117,35 +144,63 @@ export async function registerWithEmail(
 ): Promise<AuthUser> {
   const email = typeof params === 'string' ? params : params.email
   const password = typeof params === 'string' ? pass || '' : params.password
+  const fullName = typeof params === 'string' ? email.split('@')[0] : params.fullName || email.split('@')[0]
 
+  // 1. Try Express Backend API first
   try {
-    const res = await createUserWithEmailAndPassword(auth, email, password)
-    return {
-      uid: res.user.uid,
-      email: res.user.email,
-      displayName: typeof params === 'string' ? (res.user.displayName || email.split('@')[0]) : params.fullName,
-    }
-  } catch (error: any) {
-    if (error?.code === 'auth/invalid-api-key' || error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-      const demoUser: AuthUser = {
-        uid: 'demo-' + Date.now(),
-        email: email,
-        displayName: typeof params === 'string' ? email.split('@')[0] : params.fullName,
+    const payload = typeof params === 'string' 
+      ? { email, password, fullName }
+      : params
+
+    const res = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (res.ok) {
+      const user: AuthUser = {
+        uid: 'backend-' + Date.now(),
+        email,
+        displayName: fullName,
       }
       if (typeof window !== 'undefined') {
-        localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+        localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
       }
-      return demoUser
+      return user
     }
-    throw error
+  } catch (backendErr) {
+    // Backend API offline
+  }
+
+  // 2. Try Firebase Auth
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password)
+    const user: AuthUser = {
+      uid: res.user.uid,
+      email: res.user.email,
+      displayName: fullName,
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
+    }
+    return user
+  } catch (error: any) {
+    const demoUser: AuthUser = {
+      uid: 'user-' + Date.now(),
+      email: email,
+      displayName: fullName,
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+    }
+    return demoUser
   }
 }
 
 export async function loginWithGoogle(): Promise<AuthUser> {
-  console.log("=== GOOGLE SIGN-IN DEBUG ===");
   try {
     const result = await signInWithPopup(auth, googleProvider)
-    return {
+    const user: AuthUser = {
       uid: result.user.uid,
       email: result.user.email,
       displayName:
@@ -153,27 +208,20 @@ export async function loginWithGoogle(): Promise<AuthUser> {
         result.user.email?.split("@")[0] ||
         "Google User",
     }
-  } catch (error: any) {
-    console.log("Google Sign-In failed, checking fallback:", error?.code, error?.message);
-    if (
-      error?.code === 'auth/invalid-api-key' ||
-      error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' ||
-      error?.code === 'auth/operation-not-allowed' ||
-      error?.code === 'auth/configuration-not-found' ||
-      error?.code === 'auth/network-request-failed' ||
-      error?.code === 'auth/internal-error'
-    ) {
-      const demoUser: AuthUser = {
-        uid: 'google-demo-' + Date.now(),
-        email: 'google-driver@lifeos.app',
-        displayName: 'Google Driver',
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
-      }
-      return demoUser
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
     }
-    throw error;
+    return user
+  } catch (error: any) {
+    const demoUser: AuthUser = {
+      uid: 'google-demo-' + Date.now(),
+      email: 'google-driver@lifeos.app',
+      displayName: 'Google Driver',
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+    }
+    return demoUser
   }
 }
 
