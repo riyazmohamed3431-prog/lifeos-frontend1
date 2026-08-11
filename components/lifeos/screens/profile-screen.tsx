@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { vehicles as initialVehicles, type Vehicle } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
 import { CategoryIconBox, WarmBadge, WarmButton, WarmCard } from '@/components/ui/warm-components'
@@ -39,10 +39,16 @@ export function ProfileScreen({
   user,
   onLogout,
   onLoginRedirect,
+  vehicles: initialVehiclesList,
+  primaryVehicleId: initialPrimaryId,
+  onVehiclesChange,
 }: {
   user?: AuthUser | null
   onLogout?: () => void
   onLoginRedirect?: () => void
+  vehicles: Vehicle[]
+  primaryVehicleId: string
+  onVehiclesChange: (vehicles: Vehicle[], primaryId: string) => void
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('all')
 
@@ -52,9 +58,9 @@ export function ProfileScreen({
   const phoneNumber = '+91 98400 12345'
   const driverLicense = 'TN-07-2022-89410'
 
-  // Interactive Garage State
-  const [garageVehicles, setGarageVehicles] = useState<Vehicle[]>(initialVehicles)
-  const [primaryVehicleId, setPrimaryVehicleId] = useState<string>(initialVehicles[0]?.id || 'v1')
+  // Use parent props directly to avoid duplicate states and synchronization bugs
+  const garageVehicles = initialVehiclesList
+  const primaryVehicleId = initialPrimaryId
   
   // Add Vehicle State
   const [showAddVehicle, setShowAddVehicle] = useState(false)
@@ -68,16 +74,71 @@ export function ProfileScreen({
   const [editVehiclePlate, setEditVehiclePlate] = useState('')
   const [editVehicleColor, setEditVehicleColor] = useState('')
 
-  // Interactive Security & Telemetry State
+  // User-scoped keys for settings persistence
+  const userEmail = user?.email || 'guest'
+  const alertsKey = `lifeos_alerts_${userEmail}`
+  const crashKey = `lifeos_crash_${userEmail}`
+  const gpsKey = `lifeos_gps_${userEmail}`
+  const paymentKey = `lifeos_payment_${userEmail}`
+
+  // Interactive Security & Telemetry State loaded from user-scoped localStorage
   const [realtimeAlerts, setRealtimeAlerts] = useState(true)
   const [crashDetection, setCrashDetection] = useState(true)
   const [gpsTelemetry, setGpsTelemetry] = useState(true)
 
-  // Interactive Payment Default State
+  // Interactive Payment Default State loaded from user-scoped localStorage
   const [primaryPayment, setPrimaryPayment] = useState<'card' | 'upi'>('card')
 
   // Emergency contact test state
   const [testSent, setTestSent] = useState(false)
+
+  // Sync settings when the user profile changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedAlerts = localStorage.getItem(alertsKey)
+      setRealtimeAlerts(savedAlerts !== null ? savedAlerts === 'true' : true)
+
+      const savedCrash = localStorage.getItem(crashKey)
+      setCrashDetection(savedCrash !== null ? savedCrash === 'true' : true)
+
+      const savedGps = localStorage.getItem(gpsKey)
+      setGpsTelemetry(savedGps !== null ? savedGps === 'true' : true)
+
+      const savedPayment = localStorage.getItem(paymentKey)
+      setPrimaryPayment(savedPayment === 'upi' ? 'upi' : 'card')
+    }
+  }, [userEmail, alertsKey, crashKey, gpsKey, paymentKey])
+
+  const handleToggleAlerts = () => {
+    const newVal = !realtimeAlerts
+    setRealtimeAlerts(newVal)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(alertsKey, String(newVal))
+    }
+  }
+
+  const handleToggleCrash = () => {
+    const newVal = !crashDetection
+    setCrashDetection(newVal)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(crashKey, String(newVal))
+    }
+  }
+
+  const handleToggleGps = () => {
+    const newVal = !gpsTelemetry
+    setGpsTelemetry(newVal)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(gpsKey, String(newVal))
+    }
+  }
+
+  const handleTogglePayment = (val: 'card' | 'upi') => {
+    setPrimaryPayment(val)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(paymentKey, val)
+    }
+  }
 
   const handleAddVehicle = (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,7 +149,8 @@ export function ProfileScreen({
       plate: newVehiclePlate.trim(),
       color: newVehicleColor.trim() || 'Metallic Silver',
     }
-    setGarageVehicles([newV, ...garageVehicles])
+    const updated = [newV, ...garageVehicles]
+    onVehiclesChange(updated, primaryVehicleId)
     setNewVehicleName('')
     setNewVehiclePlate('')
     setNewVehicleColor('')
@@ -105,18 +167,17 @@ export function ProfileScreen({
   const handleSaveEditVehicle = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingVehicleId || !editVehicleName.trim() || !editVehiclePlate.trim()) return
-    setGarageVehicles(
-      garageVehicles.map((v) =>
-        v.id === editingVehicleId
-          ? {
-              ...v,
-              name: editVehicleName.trim(),
-              plate: editVehiclePlate.trim(),
-              color: editVehicleColor.trim() || v.color,
-            }
-          : v
-      )
+    const updated = garageVehicles.map((v) =>
+      v.id === editingVehicleId
+        ? {
+            ...v,
+            name: editVehicleName.trim(),
+            plate: editVehiclePlate.trim(),
+            color: editVehicleColor.trim() || v.color,
+          }
+        : v
     )
+    onVehiclesChange(updated, primaryVehicleId)
     setEditingVehicleId(null)
   }
 
@@ -130,14 +191,15 @@ export function ProfileScreen({
       return
     }
     const updated = garageVehicles.filter((v) => v.id !== id)
-    setGarageVehicles(updated)
+    let nextPrimaryId = primaryVehicleId
     if (primaryVehicleId === id) {
-      setPrimaryVehicleId(updated[0].id)
+      nextPrimaryId = updated[0].id
     }
+    onVehiclesChange(updated, nextPrimaryId)
   }
 
   const handleSetPrimary = (id: string) => {
-    setPrimaryVehicleId(id)
+    onVehiclesChange(garageVehicles, id)
   }
 
   const handleTestAlert = () => {
@@ -480,7 +542,7 @@ export function ProfileScreen({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <WarmCard
                 variant="white"
-                onClick={() => setPrimaryPayment('card')}
+                onClick={() => handleTogglePayment('card')}
                 className={`p-3.5 sm:p-4 flex items-center justify-between border cursor-pointer transition-all ${
                   primaryPayment === 'card' ? 'border-[#0F766E] ring-1 ring-[#0F766E]/40' : 'border-[#E2E8F0]'
                 }`}
@@ -501,7 +563,7 @@ export function ProfileScreen({
 
               <WarmCard
                 variant="white"
-                onClick={() => setPrimaryPayment('upi')}
+                onClick={() => handleTogglePayment('upi')}
                 className={`p-3.5 sm:p-4 flex items-center justify-between border cursor-pointer transition-all ${
                   primaryPayment === 'upi' ? 'border-[#0F766E] ring-1 ring-[#0F766E]/40' : 'border-[#E2E8F0]'
                 }`}
@@ -575,7 +637,7 @@ export function ProfileScreen({
                   </div>
                 </div>
                 <button
-                  onClick={() => setRealtimeAlerts(!realtimeAlerts)}
+                  onClick={handleToggleAlerts}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     realtimeAlerts ? 'bg-[#0F766E] text-white' : 'bg-muted text-muted-foreground'
                   }`}
@@ -593,7 +655,7 @@ export function ProfileScreen({
                   </div>
                 </div>
                 <button
-                  onClick={() => setCrashDetection(!crashDetection)}
+                  onClick={handleToggleCrash}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     crashDetection ? 'bg-[#2563EB] text-white' : 'bg-muted text-muted-foreground'
                   }`}
@@ -611,7 +673,7 @@ export function ProfileScreen({
                   </div>
                 </div>
                 <button
-                  onClick={() => setGpsTelemetry(!gpsTelemetry)}
+                  onClick={handleToggleGps}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     gpsTelemetry ? 'bg-[#8B5CF6] text-white' : 'bg-muted text-muted-foreground'
                   }`}

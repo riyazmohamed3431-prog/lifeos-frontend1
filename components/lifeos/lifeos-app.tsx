@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, LogOut } from 'lucide-react'
 import type { Emergency, ScreenId } from '@/lib/lifeos'
-import { vehicles, mechanic, addHistoryLog } from '@/lib/lifeos'
+import { vehicles, mechanic, history, type Vehicle, type HistoryItem } from '@/lib/lifeos'
 import { PhoneFrame } from '@/components/lifeos/phone-frame'
 import { WebsiteLayout } from '@/components/lifeos/website-layout'
 import { StatusBar } from '@/components/lifeos/status-bar'
@@ -26,11 +26,70 @@ const TAB_SCREENS: ScreenId[] = ['home', 'map', 'history', 'profile']
 
 export function LifeOSApp() {
   const [viewMode, setViewMode] = useState<'website' | 'mobile'>('website')
-  const [screen, setScreen] = useState<ScreenId>('login')
+  const [screen, setScreen] = useState<ScreenId>('landing')
   const [user, setUser] = useState<AuthUser | null>(null)
   const [selectedEmergencies, setSelectedEmergencies] = useState<Emergency[]>([])
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(vehicles[0].id)
   const [bookingNotes, setBookingNotes] = useState<string>('')
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [userVehicles, setUserVehicles] = useState<Vehicle[]>(vehicles)
+  const [userHistory, setUserHistory] = useState<HistoryItem[]>(history)
+
+  const userEmail = user?.email || 'guest'
+  const vehiclesKey = `lifeos_garage_${userEmail}`
+  const primaryVehicleKey = `lifeos_primary_vehicle_${userEmail}`
+  const historyKey = `lifeos_history_${userEmail}`
+
+  // Sync state on user load/change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedVehicles = localStorage.getItem(vehiclesKey)
+      if (storedVehicles) {
+        try {
+          setUserVehicles(JSON.parse(storedVehicles))
+        } catch (e) {
+          setUserVehicles(vehicles)
+        }
+      } else {
+        setUserVehicles(vehicles)
+      }
+
+      const storedPrimary = localStorage.getItem(primaryVehicleKey)
+      if (storedPrimary) {
+        setSelectedVehicleId(storedPrimary)
+      } else {
+        setSelectedVehicleId(vehicles[0].id)
+      }
+
+      const storedHistory = localStorage.getItem(historyKey)
+      if (storedHistory) {
+        try {
+          setUserHistory(JSON.parse(storedHistory))
+        } catch (e) {
+          setUserHistory(history)
+        }
+      } else {
+        setUserHistory(history)
+      }
+    }
+  }, [userEmail, vehiclesKey, primaryVehicleKey, historyKey])
+
+  const handleVehiclesChange = (newVehicles: Vehicle[], newPrimaryId: string) => {
+    setUserVehicles(newVehicles)
+    setSelectedVehicleId(newPrimaryId)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(vehiclesKey, JSON.stringify(newVehicles))
+      localStorage.setItem(primaryVehicleKey, newPrimaryId)
+    }
+  }
+
+  const handleAddHistoryLog = (newItem: HistoryItem) => {
+    const updated = [newItem, ...userHistory]
+    setUserHistory(updated)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(historyKey, JSON.stringify(updated))
+    }
+  }
 
   useEffect(() => {
     // Check saved session on mount
@@ -48,7 +107,12 @@ export function LifeOSApp() {
     go('home')
   }
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = async () => {
+    setShowLogoutConfirm(false)
     await logoutUser()
     setUser(null)
     go('landing')
@@ -65,14 +129,14 @@ export function LifeOSApp() {
     go('booking')
   }
 
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0]
+  const selectedVehicle = userVehicles.find((v) => v.id === selectedVehicleId) || userVehicles[0] || vehicles[0]
   const showNav = TAB_SCREENS.includes(screen)
 
   // Fullscreen Entry Views: Landing & Splash Screen
   if (screen === 'landing') {
     return (
       <LandingScreen
-        onGetStarted={() => go('splash')}
+        onGetStarted={() => go('login')}
         onLoginClick={() => go('login')}
       />
     )
@@ -85,24 +149,10 @@ export function LifeOSApp() {
   // Dedicated Fullscreen Login View (without website dashboard header)
   if (screen === 'login') {
     return (
-      <div className="relative min-h-screen w-full bg-[oklch(0.13_0.005_260)] text-foreground flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-        {/* Ambient Depth Elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
-
-        {/* Back Button to Landing Page */}
-        <button
-          onClick={() => go('landing')}
-          className="absolute top-6 left-6 z-50 flex items-center gap-2 rounded-full surface-glass px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground border border-white/10 transition-all cursor-pointer shadow-md"
-        >
-          <ArrowLeft className="size-4" />
-          <span>Back to Home</span>
-        </button>
-
-        {/* Centered Login Card Container */}
-        <div className="surface-card relative w-full max-w-md min-h-[580px] rounded-3xl border border-white/12 p-3 sm:p-5 shadow-2xl overflow-hidden backdrop-blur-2xl">
-          <LoginScreen onLoginSuccess={handleLoginSuccess} />
-        </div>
-      </div>
+      <LoginScreen
+        onLoginSuccess={handleLoginSuccess}
+        onBack={() => go('landing')}
+      />
     )
   }
 
@@ -111,6 +161,7 @@ export function LifeOSApp() {
     <div key={screen} className="h-full w-full">
       {screen === 'home' && (
         <HomeScreen
+          vehicles={userVehicles}
           onEmergency={() => startEmergency(null)}
           onSelect={(e) => startEmergency(e)}
           onNavigateProfile={() => go('profile')}
@@ -119,6 +170,7 @@ export function LifeOSApp() {
       {screen === 'map' && <MapScreen onEmergency={() => startEmergency(null)} />}
       {screen === 'booking' && (
         <BookingScreen
+          vehicles={userVehicles}
           initial={selectedEmergencies}
           onBack={() => go('home')}
           onConfirm={(issues, vehicleId, notes) => {
@@ -146,7 +198,7 @@ export function LifeOSApp() {
             if (selectedEmergencies.length > 0) {
               const combinedTitle = selectedEmergencies.map((e) => e.label).join(' + ')
               const combinedFee = selectedEmergencies.reduce((acc, e) => acc + e.fee, 0)
-              addHistoryLog({
+              handleAddHistoryLog({
                 id: 'h-' + Date.now(),
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                 title: combinedTitle,
@@ -161,13 +213,35 @@ export function LifeOSApp() {
           }}
         />
       )}
-      {screen === 'history' && <HistoryScreen />}
-      {screen === 'profile' && <ProfileScreen user={user} onLogout={handleLogout} onLoginRedirect={() => go('login')} />}
+      {screen === 'history' && <HistoryScreen userHistory={userHistory} />}
+      {screen === 'profile' && (
+        <ProfileScreen
+          user={user}
+          onLogout={handleLogout}
+          onLoginRedirect={() => go('login')}
+          vehicles={userVehicles}
+          primaryVehicleId={selectedVehicleId}
+          onVehiclesChange={handleVehiclesChange}
+        />
+      )}
     </div>
   )
 
-  if (viewMode === 'website') {
-    return (
+  const layoutContent = viewMode === 'website' ? (
+    <WebsiteLayout
+      activeScreen={screen}
+      user={user}
+      onNavigate={go}
+      onEmergency={() => startEmergency(null)}
+      onSelectEmergency={(e) => startEmergency(e)}
+      onLogout={handleLogout}
+      viewMode={viewMode}
+      onToggleViewMode={setViewMode}
+    >
+      {renderActiveScreen()}
+    </WebsiteLayout>
+  ) : (
+    <PhoneFrame viewMode={viewMode} onToggleViewMode={setViewMode}>
       <WebsiteLayout
         activeScreen={screen}
         user={user}
@@ -180,20 +254,43 @@ export function LifeOSApp() {
       >
         {renderActiveScreen()}
       </WebsiteLayout>
-    )
-  }
+    </PhoneFrame>
+  )
 
   return (
-    <PhoneFrame viewMode={viewMode} onToggleViewMode={setViewMode}>
-      <StatusBar />
+    <>
+      {layoutContent}
 
-      <div className="absolute inset-0 top-8">
-        {renderActiveScreen()}
-      </div>
-
-      {showNav && (
-        <BottomNav active={screen} onNavigate={go} onEmergency={() => startEmergency(null)} />
+      {/* Custom Premium Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#131316] border border-white/10 rounded-[28px] p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-scale-in">
+            <div className="mx-auto size-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+              <LogOut className="size-6" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-extrabold text-white">Confirm Logout</h3>
+              <p className="text-xs text-neutral-400">
+                Are you sure you want to end your LifeOS session and sign out?
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 rounded-xl bg-neutral-900 border border-white/5 py-2.5 text-xs font-bold text-neutral-300 hover:text-white transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-red-950/20 transition-all cursor-pointer"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-    </PhoneFrame>
+    </>
   )
 }

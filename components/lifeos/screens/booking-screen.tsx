@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { emergencies, vehicles, type Emergency, mechanic } from '@/lib/lifeos'
+import { emergencies, vehicles, type Emergency, mechanic, type Vehicle } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
 import { CategoryIconBox, WarmBadge, WarmButton, WarmCard } from '@/components/ui/warm-components'
 import { ArrowLeft, MapPin, Check, Car, ShieldCheck, ShieldAlert, ChevronRight, X, AlertCircle } from 'lucide-react'
@@ -9,10 +9,12 @@ import { cn } from '@/lib/utils'
 import { FadeIn } from '@/components/ui/framer-wrapper'
 
 export function BookingScreen({
+  vehicles: userVehicles,
   initial,
   onBack,
   onConfirm,
 }: {
+  vehicles: Vehicle[]
   initial?: Emergency | Emergency[] | null
   onBack: () => void
   onConfirm: (selectedIssues: Emergency[], vehicleId: string, notes: string) => void
@@ -28,11 +30,11 @@ export function BookingScreen({
     : [emergencies[0]]
 
   const [selectedIssues, setSelectedIssues] = useState<Emergency[]>(initialSelected)
-  const [selectedVehicle, setSelectedVehicle] = useState(vehicles[0].id)
+  const [selectedVehicle, setSelectedVehicle] = useState(userVehicles[0]?.id || 'v1')
   const [providerTier, setProviderTier] = useState<'standard' | 'heavy'>('standard')
   const [notes, setNotes] = useState('')
 
-  const activeVehicleObj = vehicles.find((v) => v.id === selectedVehicle) || vehicles[0]
+  const activeVehicleObj = userVehicles.find((v) => v.id === selectedVehicle) || userVehicles[0] || vehicles[0]
 
   const getCategoryColor = (id: string): 'blue' | 'amber' | 'emerald' | 'orange' | 'red' | 'purple' | 'rose' => {
     switch (id) {
@@ -286,7 +288,7 @@ export function BookingScreen({
             <div className="space-y-2">
               <label className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wider">Target Vehicle</label>
               <div className="grid grid-cols-1 gap-2.5">
-                {vehicles.map((v) => {
+                {userVehicles.map((v) => {
                   const active = selectedVehicle === v.id
                   return (
                     <WarmCard

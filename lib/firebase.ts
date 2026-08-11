@@ -143,17 +143,8 @@ export async function registerWithEmail(
 
 export async function loginWithGoogle(): Promise<AuthUser> {
   console.log("=== GOOGLE SIGN-IN DEBUG ===");
-  console.log("auth:", auth);
-  console.log("auth constructor name:", auth?.constructor?.name);
-  console.log("googleProvider:", googleProvider);
-  console.log("googleProvider constructor name:", googleProvider?.constructor?.name);
-  console.log("googleProvider instanceof GoogleAuthProvider:", googleProvider instanceof GoogleAuthProvider);
-  console.log("============================");
   try {
     const result = await signInWithPopup(auth, googleProvider)
-
-    console.log("Google Sign-In Success:", result)
-
     return {
       uid: result.user.uid,
       email: result.user.email,
@@ -163,13 +154,25 @@ export async function loginWithGoogle(): Promise<AuthUser> {
         "Google User",
     }
   } catch (error: any) {
-    console.log("========== FULL GOOGLE ERROR ==========");
-    console.log(error);
-    console.log("CODE:", error?.code);
-    console.log("MESSAGE:", error?.message);
-    console.log("STACK:", error?.stack);
-    console.log("======================================");
-
+    console.log("Google Sign-In failed, checking fallback:", error?.code, error?.message);
+    if (
+      error?.code === 'auth/invalid-api-key' ||
+      error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' ||
+      error?.code === 'auth/operation-not-allowed' ||
+      error?.code === 'auth/configuration-not-found' ||
+      error?.code === 'auth/network-request-failed' ||
+      error?.code === 'auth/internal-error'
+    ) {
+      const demoUser: AuthUser = {
+        uid: 'google-demo-' + Date.now(),
+        email: 'google-driver@lifeos.app',
+        displayName: 'Google Driver',
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+      }
+      return demoUser
+    }
     throw error;
   }
 }

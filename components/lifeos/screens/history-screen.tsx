@@ -7,12 +7,12 @@ import { CategoryIconBox, WarmBadge, WarmButton, WarmCard } from '@/components/u
 import { Wrench, ChevronRight, FileText, CheckCircle2, Search, Filter, Star, Calendar, Download, X } from 'lucide-react'
 import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from '@/components/ui/framer-wrapper'
 
-export function HistoryScreen() {
+export function HistoryScreen({ userHistory = history }: { userHistory?: HistoryItem[] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<'All' | 'Completed' | 'Emergency'>('All')
   const [selectedReceipt, setSelectedReceipt] = useState<HistoryItem | null>(null)
 
-  const filteredHistory = history.filter((item) => {
+  const filteredHistory = userHistory.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.vehicle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,7 +42,7 @@ export function HistoryScreen() {
         {/* Overview Key Metrics Cards */}
         <SlideUp delay={0.12} className="grid grid-cols-3 gap-2 sm:gap-3">
           <WarmCard variant="slate" className="p-2.5 sm:p-4 text-center min-w-0">
-            <p className="text-xl sm:text-2xl font-black text-[#0F766E] font-mono truncate">{history.length}</p>
+            <p className="text-xl sm:text-2xl font-black text-[#0F766E] font-mono truncate">{userHistory.length}</p>
             <p className="text-[9px] sm:text-[10px] font-bold text-[#475569] dark:text-[#94A3B8] uppercase mt-0.5 truncate">Total Rescues</p>
           </WarmCard>
           <WarmCard variant="slate" className="p-2.5 sm:p-4 text-center min-w-0">

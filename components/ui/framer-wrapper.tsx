@@ -108,10 +108,12 @@ export function HoverScaleCard({
   children,
   className = '',
   onClick,
+  style,
 }: {
   children: ReactNode
   className?: string
   onClick?: () => void
+  style?: React.CSSProperties
 }) {
   return (
     <motion.div
@@ -120,6 +122,7 @@ export function HoverScaleCard({
       transition={{ duration: 0.2, ease: 'easeOut' }}
       onClick={onClick}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>

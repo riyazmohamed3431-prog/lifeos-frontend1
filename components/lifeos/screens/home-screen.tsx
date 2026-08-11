@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { emergencies, mechanic, vehicles, nearbyMechanics, history, type Emergency } from '@/lib/lifeos'
+import { emergencies, mechanic, vehicles, nearbyMechanics, type Emergency, type Vehicle } from '@/lib/lifeos'
 import { AmbientBg } from '@/components/lifeos/ambient-bg'
-import { BentoCard, BentoGrid, CategoryIconBox, HealthRadialGauge, WarmBadge, WarmButton, WarmCard, WarmProgress } from '@/components/ui/warm-components'
+import { BentoCard, BentoGrid, CategoryIconBox, HealthRadialGauge, WarmButton, WarmCard } from '@/components/ui/warm-components'
 import {
   MapPin,
   ShieldCheck,
@@ -32,25 +32,42 @@ import {
   CreditCard,
   Lock,
   User,
+  Settings,
 } from 'lucide-react'
 import { CallModal } from '@/components/lifeos/call-modal'
 import { motion } from 'framer-motion'
 import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from '@/components/ui/framer-wrapper'
+import { cn } from '@/lib/utils'
 
 export function HomeScreen({
+  vehicles: userVehicles,
   onEmergency,
   onSelect,
   onNavigateProfile,
 }: {
+  vehicles: Vehicle[]
   onEmergency: () => void
   onSelect: (e: Emergency) => void
   onNavigateProfile?: () => void
 }) {
-  const primaryVehicle = vehicles[0]
+  const primaryVehicle = (() => {
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('lifeos_demo_user')
+      let emailStr = 'guest'
+      if (storedUser) {
+        try {
+          emailStr = JSON.parse(storedUser).email || 'guest'
+        } catch (e) {}
+      }
+      const primaryId = localStorage.getItem(`lifeos_primary_vehicle_${emailStr}`)
+      const found = userVehicles.find((v) => v.id === primaryId)
+      return found || userVehicles[0] || vehicles[0]
+    }
+    return userVehicles[0] || vehicles[0]
+  })()
   const [calling, setCalling] = useState(false)
-  const [flashlightOn, setFlashlightOn] = useState(false)
-  const [shared, setShared] = useState(false)
   const [activeSymptom, setActiveSymptom] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'responders' | 'rates' | 'garage'>('telemetry')
 
   const getCategoryColor = (id: string): 'indigo' | 'amber' | 'emerald' | 'coral' | 'rose' | 'purple' => {
     switch (id) {
@@ -81,253 +98,274 @@ export function HomeScreen({
     }, 350)
   }
 
-  const handleShareGps = () => {
-    setShared(true)
-    setTimeout(() => setShared(false), 2500)
-  }
-
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar pb-32 font-sans text-[#0F172A] dark:text-[#F8FAFC]">
-      <AmbientBg tone="primary" />
+    <div className="w-full space-y-6">
+      
+      {/* EXECUTIVE GREETING HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-200/80">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+              Good Morning, <span className="bg-gradient-to-r from-[#F59E0B] to-[#E2833B] bg-clip-text text-transparent font-black">Riyaz</span>
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#E9EFFF] text-[#2563EB] border border-[#D5E2FF] shrink-0">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Protected by LifeOS VIP
+            </span>
+          </div>
+          <p className="text-xs text-neutral-500 mt-1.5 font-semibold">
+            Chengalpattu Hub · GST Road NH-45 Highway Corridor
+          </p>
+        </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-3 space-y-6 max-w-5xl mx-auto">
+        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+          {/* Settings button */}
+          <button 
+            onClick={onNavigateProfile}
+            className="bg-white hover:bg-neutral-50 border border-neutral-200 px-4 py-2 rounded-xl text-xs font-bold text-neutral-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Settings className="size-3.5 text-neutral-500" />
+            <span>Settings</span>
+          </button>
+          {/* Request Rescue button */}
+          <button 
+            onClick={onEmergency}
+            className="bg-[#181922] hover:bg-neutral-800 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold tracking-wide shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <AlertTriangle className="size-3.5 text-white animate-pulse" />
+            <span>+ Request SOS Rescue</span>
+          </button>
+        </div>
+      </div>
+
+      {/* PILL NAVIGATION TABS */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+        <button
+          onClick={() => setActiveTab('telemetry')}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            activeTab === 'telemetry' 
+              ? "bg-[#181922] text-white shadow-sm" 
+              : "bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-600 hover:text-neutral-900"
+          )}
+        >
+          Telemetry Summary
+        </button>
+        <button
+          onClick={() => setActiveTab('responders')}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            activeTab === 'responders' 
+              ? "bg-[#181922] text-white shadow-sm" 
+              : "bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-600 hover:text-neutral-900"
+          )}
+        >
+          Active Fleet Radar
+        </button>
+        <button
+          onClick={() => setActiveTab('rates')}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            activeTab === 'rates' 
+              ? "bg-[#181922] text-white shadow-sm" 
+              : "bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-600 hover:text-neutral-900"
+          )}
+        >
+          Fixed Rates
+        </button>
+        <button
+          onClick={onNavigateProfile}
+          className="bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-600 hover:text-neutral-900 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        >
+          Garage Management
+        </button>
+      </div>
+
+      {/* BENTO GRID */}
+      <BentoGrid className="gap-5">
         
-        {/* EXECUTIVE GREETING HEADER */}
-        <FadeIn delay={0.05} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-white/10 pb-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">
-                Good Morning, <span className="text-[#0F766E]">Riyaz</span>
-              </h1>
-              <WarmBadge variant="emerald" className="shrink-0">
-                <span className="size-1.5 rounded-full bg-[#0F766E] animate-pulse" />
-                Protected by LifeOS
-              </WarmBadge>
+        {/* TILE 1: Connected Vehicle Telemetry (Blue pastel style) */}
+        <BentoCard
+          colSpan={8}
+          hover={false}
+          className="bg-gradient-to-br from-[#EBF1FF] to-[#DCE7FF] border border-[#ADC8FF] rounded-3xl p-6 flex flex-col justify-between shadow-sm min-w-0"
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-[#C5D7FF]/60 pb-3 min-w-0">
+            <div className="flex items-center min-w-0">
+              <div className="size-9 rounded-full bg-white flex items-center justify-center text-[#2563EB] shadow-sm shrink-0">
+                <Car className="size-4.5" />
+              </div>
+              <span className="text-xs font-bold text-neutral-800 ml-2.5 truncate">Vehicle Telemetry</span>
             </div>
-            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 font-medium break-words">
-              Autonomous Roadside Command Center · GST Road NH-45 Highway Corridor
+            <span className="bg-[#181922] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0">
+              84% Battery Charge
+            </span>
+          </div>
+
+          <div className="my-6">
+            <div className="flex items-baseline text-[#0F172A] tracking-tight">
+              <span className="text-4xl font-black">420</span>
+              <span className="text-neutral-500 text-sm font-semibold ml-1">/ 500 km Max Range</span>
+            </div>
+            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider mt-1.5">
+              {primaryVehicle.name} · {primaryVehicle.plate} · Midnight Silver
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <div className="bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-md flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] shadow-sm">
-              <Navigation className="size-3.5 text-[#4338CA] animate-pulse" />
-              <span>Chengalpattu Hub</span>
-            </div>
+          {/* Segmented Range Indicator */}
+          <div className="grid grid-cols-8 gap-2">
+            {[...Array(8)].map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "h-6 rounded-lg transition-all shadow-inner",
+                  idx < 6
+                    ? "bg-[#A3BEFF]"
+                    : "border border-dashed border-[#A3BEFF]/60 bg-transparent"
+                )}
+              />
+            ))}
           </div>
-        </FadeIn>
+        </BentoCard>
 
-        {/* BENTO GRID LAYOUT SYSTEM */}
-        <BentoGrid>
-          
-          {/* BENTO TILE 1: Large Deep Emerald Hero Card (colSpan 8) */}
-          <BentoCard colSpan={8} variant="emerald" className="p-5 sm:p-7 space-y-5 shadow-xl min-w-0">
-            <div className="flex items-center justify-between gap-2 border-b border-white/20 pb-4 min-w-0">
-              <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-white/70 block truncate">Connected Vehicle Telemetry</span>
-                <h2 className="text-xl font-black text-white truncate">{primaryVehicle.name}</h2>
-                <p className="text-xs text-white/80 font-mono mt-0.5 truncate">{primaryVehicle.plate} · Midnight Silver</p>
+        {/* TILE 2: Safety Rating (Teal/Green pastel style) */}
+        <BentoCard
+          colSpan={4}
+          hover={false}
+          className="bg-gradient-to-br from-[#F0FDF4] to-[#DCFCE7] border border-[#BBF7D0] rounded-3xl p-6 flex flex-col justify-between shadow-sm min-w-0"
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-[#CFEAE3]/60 pb-3 min-w-0">
+            <div className="flex items-center min-w-0">
+              <div className="size-9 rounded-full bg-white flex items-center justify-center text-[#0D9488] shadow-sm shrink-0">
+                <Wrench className="size-4.5" />
               </div>
-              <WarmBadge variant="amber" className="bg-white/20 text-white border-white/30 shrink-0">
-                84% Battery Charge
-              </WarmBadge>
+              <span className="text-xs font-bold text-neutral-800 ml-2.5 truncate">Safety Score</span>
+            </div>
+            <span className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0">
+              Optimal
+            </span>
+          </div>
+
+          <div className="flex justify-center my-3 shrink-0">
+            <HealthRadialGauge score={98} size={92} strokeWidth={8} label="" />
+          </div>
+
+          <span className="inline-flex justify-center items-center gap-1.5 px-3 py-1 bg-white border border-neutral-200 text-neutral-700 text-[11px] font-bold rounded-full mt-2 shadow-sm shrink-0 self-center">
+            Top 1% Safe Driver
+          </span>
+        </BentoCard>
+
+        {/* TILE 3: Climate capsule (Purple pastel style) */}
+        <BentoCard
+          colSpan={4}
+          hover={false}
+          className="bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] border border-[#FDE68A] rounded-3xl p-5 space-y-3 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <div className="size-8.5 rounded-full bg-white flex items-center justify-center text-[#D97706] shadow-sm shrink-0">
+              <SunMedium className="size-4" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#D97706]">Weather</span>
+          </div>
+          <div>
+            <p className="text-base font-extrabold text-neutral-800">29°C Clear Weather</p>
+            <p className="text-xs text-neutral-500 font-medium mt-0.5">NH-45 GST Road Traffic Flow Normal</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D97706]/10 text-[#D97706] border border-[#D97706]/20 shrink-0 self-start mt-2">
+            All Patrol Units Ready
+          </span>
+        </BentoCard>
+
+        {/* TILE 4: Emergency SOS (Callout dark card style) */}
+        <BentoCard
+          colSpan={8}
+          hover={false}
+          className="bg-gradient-to-br from-[#1C1618] to-[#140F11] text-white rounded-3xl p-6 flex flex-col justify-between border border-red-500/25 shadow-xl min-w-0"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#E11D48]/10 text-[#FB7185] border-[#E11D48]/20 shrink-0">
+                Priority Dispatch
+              </span>
+              <h3 className="text-base font-black text-white">Experiencing a Highway Emergency?</h3>
+              <p className="text-xs text-neutral-400">1-tap SOS connects you directly to master mechanics.</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 text-white">
-              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
-                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Max Range</p>
-                <p className="text-sm sm:text-base font-black mt-0.5 truncate">420 km</p>
-              </div>
-              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
-                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Tyre Pressure</p>
-                <p className="text-sm sm:text-base font-black mt-0.5 truncate">36 PSI</p>
-              </div>
-              <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3 border border-white/15 backdrop-blur-md text-center min-w-0">
-                <p className="text-[9px] sm:text-[10px] font-bold uppercase text-white/70 truncate">Fastest Rescue</p>
-                <p className="text-sm sm:text-base font-black mt-0.5 text-[#F59E0B] truncate">~8 Mins</p>
-              </div>
-            </div>
-          </BentoCard>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onEmergency}
+              className="flex flex-col items-center justify-center size-24 rounded-full bg-gradient-to-tr from-[#E11D48] via-[#F97316] to-[#F59E0B] text-white font-black shadow-lg shadow-[#E11D48]/20 transition-all cursor-pointer border-3 border-white/25 shrink-0 self-center"
+            >
+              <AlertTriangle className="size-6 mb-0.5 text-white" strokeWidth={2.4} />
+              <span className="text-[9px] font-black tracking-wider">REQUEST SOS</span>
+            </motion.button>
+          </div>
 
-          {/* BENTO TILE 2: Safety Radial Gauge Tile (colSpan 4) */}
-          <BentoCard colSpan={4} variant="white" className="p-5 flex flex-col items-center justify-center text-center border border-[#E2E8F0]">
-            <HealthRadialGauge score={98} size={115} strokeWidth={9} label="Vehicle Health Score" />
-            <WarmBadge variant="green" className="mt-3">Top 1% Safe Driver</WarmBadge>
-          </BentoCard>
-
-          {/* BENTO TILE 3: Climate & Location Capsule (colSpan 4) */}
-          <BentoCard colSpan={4} variant="indigo" className="p-5 space-y-3 border border-[#4338CA]/25">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#4338CA]">Highway Corridor</span>
-              <SunMedium className="size-4 text-[#F59E0B]" />
-            </div>
-            <div>
-              <p className="text-base font-black text-[#0F172A] dark:text-[#F8FAFC]">29°C Clear Weather</p>
-              <p className="text-xs text-[#475569] dark:text-[#94A3B8] font-medium mt-0.5">NH-45 GST Road Traffic Flow Normal</p>
-            </div>
-            <WarmBadge variant="indigo">All Patrol Units Ready</WarmBadge>
-          </BentoCard>
-
-          {/* BENTO TILE 4: Quick Emergency Actions & SOS Trigger (colSpan 8) */}
-          <BentoCard colSpan={8} variant="rose" className="p-6 space-y-5 border border-[#E11D48]/30 shadow-md">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <WarmBadge variant="rose">Priority Dispatch</WarmBadge>
-                <h3 className="text-lg font-black text-[#0F172A] dark:text-[#F8FAFC]">Experiencing a Highway Emergency?</h3>
-                <p className="text-xs text-[#475569] dark:text-[#94A3B8]">1-tap dispatch sends certified rescue squads with live GPS telemetry.</p>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-                onClick={onEmergency}
-                className="flex flex-col items-center justify-center size-28 rounded-full bg-gradient-to-tr from-[#E11D48] via-[#F97316] to-[#F59E0B] text-white font-black shadow-xl shadow-[#E11D48]/30 transition-all cursor-pointer border-3 border-white/20 shrink-0 self-center"
-              >
-                <AlertTriangle className="size-7 mb-0.5" strokeWidth={2.4} />
-                <span className="text-xs font-black tracking-wider">REQUEST SOS</span>
-              </motion.button>
-            </div>
-
-            {/* Quick Symptom Chips Carousel */}
-            <div className="pt-2 border-t border-[#E11D48]/20 space-y-2">
-              <p className="text-[11px] font-bold text-[#475569] dark:text-[#94A3B8] uppercase">Quick Symptom Triage:</p>
-              <div className="flex flex-wrap gap-2">
-                {symptomChips.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSymptomClick(chip.emergencyId, chip.label)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer border ${
-                      activeSymptom === chip.label
-                        ? 'bg-[#E11D48] text-white border-[#E11D48] shadow-sm'
-                        : 'bg-white dark:bg-[#18181B] text-[#475569] dark:text-[#94A3B8] hover:text-foreground border-[#E2E8F0]'
-                    }`}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* BENTO TILE 5: Services Grid (colSpan 12) */}
-          <BentoCard colSpan={12} variant="white" className="p-4 sm:p-6 space-y-4 border border-[#E2E8F0]">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#0F766E] truncate">Roadside Services & Fixed Rates</h3>
-                <p className="text-xs text-[#475569] dark:text-[#94A3B8] truncate">Certified responders on stand-by with 24/7 coverage</p>
-              </div>
-              <WarmButton variant="ghost" size="sm" onClick={onEmergency} className="shrink-0">
-                View All ({emergencies.length}) <ChevronRight className="size-3.5" />
-              </WarmButton>
-            </div>
-
-            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-              {emergencies.slice(0, 4).map((e) => {
-                const color = getCategoryColor(e.id)
-                const Icon = e.icon
-                return (
-                  <StaggerItem key={e.id}>
-                    <WarmCard
-                      onClick={() => onSelect(e)}
-                      className="hover:border-[#0F766E]/40 flex flex-col justify-between min-h-[135px] sm:min-h-[140px] p-3 sm:p-4 border border-[#E2E8F0] group min-w-0 overflow-hidden"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
-                        <CategoryIconBox icon={Icon} color={color} className="shrink-0 size-9 sm:size-11" />
-                        <span className="text-[10px] font-mono font-bold text-[#0F766E] bg-[#0F766E]/10 dark:bg-[#0F766E]/20 px-2 py-0.5 rounded-full border border-[#0F766E]/20 shrink-0">
-                          ₹{e.fee}
-                        </span>
-                      </div>
-                      <div className="min-w-0 mt-2">
-                        <h4 className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] group-hover:text-[#0F766E] transition-colors line-clamp-2 leading-snug">{e.label}</h4>
-                        <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] truncate mt-0.5">{e.sub}</p>
-                      </div>
-                    </WarmCard>
-                  </StaggerItem>
-                )
-              })}
-            </StaggerContainer>
-          </BentoCard>
-
-          {/* BENTO TILE 6: Profile Options Dashboard Quick Grid (colSpan 6) */}
-          <BentoCard colSpan={6} variant="purple" className="p-4 sm:p-5 space-y-4 border border-[#8B5CF6]/30 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#8B5CF6] truncate">Dashboard Profile Options</h3>
-              <WarmBadge variant="purple" className="shrink-0">Executive VIP</WarmBadge>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={onNavigateProfile}
-                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
-              >
-                <CategoryIconBox icon={Car} color="blue" className="size-8" />
-                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">My Garage</p>
-                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">3 Registered Vehicles</p>
-              </button>
-
-              <button
-                onClick={onNavigateProfile}
-                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
-              >
-                <CategoryIconBox icon={CreditCard} color="emerald" className="size-8" />
-                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">Payments</p>
-                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">HDFC Visa & UPI</p>
-              </button>
-
-              <button
-                onClick={onNavigateProfile}
-                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
-              >
-                <CategoryIconBox icon={Phone} color="coral" className="size-8" />
-                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">SOS Contacts</p>
-                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">2 Verified Receivers</p>
-              </button>
-
-              <button
-                onClick={onNavigateProfile}
-                className="p-3 rounded-2xl bg-white dark:bg-[#18181B] border border-[#E2E8F0] dark:border-white/10 flex flex-col items-start gap-1 cursor-pointer transition-all hover:scale-[1.02] text-left"
-              >
-                <CategoryIconBox icon={Lock} color="purple" className="size-8" />
-                <p className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-1">Security</p>
-                <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">256-Bit SSL Telemetry</p>
-              </button>
-            </div>
-          </BentoCard>
-
-          {/* BENTO TILE 7: Nearby Rescue Squads (colSpan 6) */}
-          <BentoCard colSpan={6} variant="white" className="p-4 sm:p-5 space-y-4 border border-[#E2E8F0] min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#0F766E] truncate">Active Certified Rescue Fleet</h3>
-              <WarmBadge variant="emerald" className="shrink-0">4 Responders</WarmBadge>
-            </div>
-
-            <div className="space-y-3">
-              {nearbyMechanics.slice(0, 2).map((m) => (
-                <div key={m.tag} className="p-3 rounded-2xl bg-[#F1F5F9] dark:bg-[#27272A] border border-[#E2E8F0] dark:border-white/10 space-y-2 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <CategoryIconBox icon={ShieldCheck} color="emerald" className="shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] truncate">{m.name}</h4>
-                        <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] truncate w-full">{m.spec}</p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="flex items-center gap-1 text-[#F59E0B] text-xs font-bold justify-end">
-                        <Star className="size-3.5 fill-[#F59E0B] stroke-[#F59E0B]" />
-                        <span>{m.rating}</span>
-                      </div>
-                      <span className="text-[10px] font-mono font-bold text-[#0F766E] block">{m.eta} ETA</span>
-                    </div>
-                  </div>
-                </div>
+          <div className="pt-2 border-t border-white/5 space-y-2 mt-4">
+            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Symptom Quick-Triage:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {symptomChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSymptomClick(chip.emergencyId, chip.label)}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-bold transition-all cursor-pointer border",
+                    activeSymptom === chip.label
+                      ? "bg-[#E11D48] text-white border-[#E11D48] shadow-sm"
+                      : "bg-[#2A2B36] hover:bg-neutral-800 text-neutral-300 hover:text-white border-white/5"
+                  )}
+                >
+                  {chip.label}
+                </button>
               ))}
             </div>
-          </BentoCard>
+          </div>
+        </BentoCard>
 
-        </BentoGrid>
+        {/* TILE 5: Fixed Rates Services (White card layout) */}
+        <BentoCard
+          colSpan={12}
+          hover={false}
+          className="bg-gradient-to-br from-[#F0FDFA] to-[#CCFBF1] border border-[#99F6E4] rounded-3xl p-6 space-y-4 shadow-sm"
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-neutral-500">Fixed Rate Roadside Services</h3>
+              <p className="text-xs text-neutral-400 mt-0.5">Cashless digital receipt payments with upfront quotes</p>
+            </div>
+            <WarmButton variant="ghost" size="sm" onClick={onEmergency} className="text-xs border-neutral-200 hover:bg-neutral-50">
+              View All ({emergencies.length}) <ChevronRight className="size-3.5" />
+            </WarmButton>
+          </div>
 
-      </div>
+          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {emergencies.slice(0, 4).map((e) => {
+              const color = getCategoryColor(e.id)
+              const Icon = e.icon
+              return (
+                <StaggerItem key={e.id}>
+                  <WarmCard
+                    onClick={() => onSelect(e)}
+                    className="bg-[#F4F6F5] hover:bg-[#EAECEB] border border-neutral-200/40 flex flex-col justify-between min-h-[135px] sm:min-h-[140px] p-4 rounded-2xl group min-w-0 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+                      <CategoryIconBox icon={Icon} color={color} className="shrink-0 size-9 sm:size-10 bg-white" />
+                      <span className="text-[11px] font-mono font-bold bg-[#181922] text-white px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
+                        ₹{e.fee}
+                      </span>
+                    </div>
+                    <div className="min-w-0 mt-3">
+                      <h4 className="text-xs font-black text-neutral-800 group-hover:text-[#2563EB] transition-colors line-clamp-2 leading-snug">{e.label}</h4>
+                      <p className="text-[9px] text-neutral-500 truncate mt-0.5">{e.sub}</p>
+                    </div>
+                  </WarmCard>
+                </StaggerItem>
+              )
+            })}
+          </StaggerContainer>
+        </BentoCard>
+      </ BentoGrid>
 
       {/* Live Calling Modal */}
       <CallModal

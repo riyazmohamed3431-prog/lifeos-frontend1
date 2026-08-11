@@ -377,7 +377,7 @@ export function HealthRadialGauge({
           </defs>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-black tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">{displayScore}%</span>
+          <span className="text-2xl font-black tracking-tight text-[#0F766E]">{displayScore}%</span>
           <span className="text-[10px] font-extrabold text-[#0F766E] uppercase tracking-wider">Optimal</span>
         </div>
       </div>

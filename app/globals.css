@@ -242,7 +242,7 @@
 
 @keyframes openingFloat {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-20px); }
 }
 
 .animate-nav-entrance {
@@ -274,6 +274,6 @@
 }
 
 .animate-float-card {
-  animation: openingFloat 5s ease-in-out infinite;
+  animation: openingFloat 3.2s ease-in-out infinite;
 }
 
