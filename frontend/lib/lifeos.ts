@@ -111,3 +111,31 @@ export function addHistoryLog(newItem: HistoryItem) {
   history.unshift(newItem)
 }
 
+const getApiBaseUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL
+  if (!url) {
+    if (process.env.NODE_ENV === 'production') {
+      return ''
+    }
+    return 'http://localhost:5001'
+  }
+  return url
+}
+
+export const API_BASE_URL = getApiBaseUrl()
+
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('lifeos_jwt_token') : null
+  const headers = new Headers(options.headers || {})
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+  const res = await fetch(url, { ...options, headers })
+  if (res.status === 401 && typeof window !== 'undefined') {
+    localStorage.removeItem('lifeos_jwt_token')
+    localStorage.removeItem('lifeos_current_request_id')
+    window.location.href = '/'
+  }
+  return res
+}
+
