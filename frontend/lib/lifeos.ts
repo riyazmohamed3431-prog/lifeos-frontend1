@@ -14,6 +14,7 @@ export type ScreenId =
   | 'landing'
   | 'splash'
   | 'login'
+  | 'welcome'
   | 'home'
   | 'map'
   | 'booking'

@@ -277,3 +277,66 @@
   animation: openingFloat 3.2s ease-in-out infinite;
 }
 
+/* Cyber Glitch Animation Effects for Welcome Screen */
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  8% { transform: skew(-3deg); }
+  15% { transform: skew(2deg); }
+  22% { transform: skew(-1deg); }
+  30% { transform: skew(4deg); }
+  35% { transform: skew(-0.5deg); }
+  42% { transform: skew(0deg); }
+  100% { transform: skew(0deg); }
+}
+
+@keyframes glitch-layer1 {
+  0% { clip-path: inset(15% 0 60% 0); transform: translate(-4px, -2px); }
+  20% { clip-path: inset(55% 0 15% 0); transform: translate(5px, 2px); }
+  40% { clip-path: inset(10% 0 75% 0); transform: translate(-3px, 3px); }
+  60% { clip-path: inset(75% 0 8% 0); transform: translate(4px, -1px); }
+  80% { clip-path: inset(25% 0 45% 0); transform: translate(-4px, 1px); }
+  100% { clip-path: inset(15% 0 60% 0); transform: translate(0, 0); }
+}
+
+@keyframes glitch-layer2 {
+  0% { clip-path: inset(45% 0 25% 0); transform: translate(5px, 2px); }
+  20% { clip-path: inset(12% 0 78% 0); transform: translate(-5px, -2px); }
+  40% { clip-path: inset(68% 0 12% 0); transform: translate(4px, -1px); }
+  60% { clip-path: inset(18% 0 62% 0); transform: translate(-4px, 2px); }
+  80% { clip-path: inset(48% 0 22% 0); transform: translate(3px, -3px); }
+  100% { clip-path: inset(45% 0 25% 0); transform: translate(0, 0); }
+}
+
+.glitch-text {
+  position: relative;
+  display: inline-block;
+  color: #FFFFFF;
+  text-shadow: 0 0 25px rgba(236, 72, 153, 0.9), 0 0 50px rgba(168, 85, 247, 0.7), 0 0 75px rgba(139, 92, 246, 0.5);
+  animation: glitch-skew 3.5s infinite ease-in-out;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+.glitch-text::before {
+  color: #F43F5E;
+  text-shadow: -4px 0 #F43F5E;
+  animation: glitch-layer1 2.2s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+  color: #06B6D4;
+  text-shadow: 4px 0 #06B6D4;
+  animation: glitch-layer2 1.8s infinite linear alternate-reverse;
+}
+
+

@@ -20,6 +20,7 @@ import { TrackingScreen } from '@/components/lifeos/screens/tracking-screen'
 import { PaymentScreen } from '@/components/lifeos/screens/payment-screen'
 import { HistoryScreen } from '@/components/lifeos/screens/history-screen'
 import { ProfileScreen } from '@/components/lifeos/screens/profile-screen'
+import { WelcomeScreen } from '@/components/lifeos/screens/welcome-screen'
 import { getSavedSession, logoutUser, type AuthUser } from '@/lib/firebase'
 
 const TAB_SCREENS: ScreenId[] = ['home', 'map', 'history', 'profile']
@@ -114,19 +115,19 @@ export function LifeOSApp() {
       }
     }
 
-    // Check saved session on mount
+    // Check saved session on mount and store user, but start at landing page
     const saved = getSavedSession()
     if (saved) {
       setUser(saved)
-      setScreen('home')
     }
+    setScreen('landing')
   }, [])
 
   const go = (s: ScreenId) => setScreen(s)
 
   const handleLoginSuccess = (authUser: AuthUser) => {
     setUser(authUser)
-    go('home')
+    go('welcome')
   }
 
   const handleLogout = () => {
@@ -154,7 +155,7 @@ export function LifeOSApp() {
   const selectedVehicle = userVehicles.find((v) => v.id === selectedVehicleId) || userVehicles[0] || vehicles[0]
   const showNav = TAB_SCREENS.includes(screen)
 
-  // Fullscreen Entry Views: Landing & Splash Screen
+  // Fullscreen Entry Views: Landing, Splash, & Welcome Screens
   if (screen === 'landing') {
     return (
       <LandingScreen
@@ -174,6 +175,16 @@ export function LifeOSApp() {
       <LoginScreen
         onLoginSuccess={handleLoginSuccess}
         onBack={() => go('landing')}
+      />
+    )
+  }
+
+  // Dedicated Fullscreen Cyber Welcome Screen
+  if (screen === 'welcome') {
+    return (
+      <WelcomeScreen
+        user={user}
+        onContinue={() => go('home')}
       />
     )
   }
