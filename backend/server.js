@@ -63,12 +63,13 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const mechanicRoutes = require("./routes/mechanic");
 const requestRoutes = require("./routes/requests");
-
+const locationRoutes = require("./routes/location");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/mechanic", mechanicRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/location", locationRoutes);
 
 const PORT = process.env.PORT || 5001;
 

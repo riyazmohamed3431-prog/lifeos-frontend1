@@ -71,6 +71,13 @@ export type AuthUser = {
   email: string | null
   displayName: string | null
   isGuest?: boolean
+  phoneNumber?: string
+  vehicleType?: string
+  vehicleBrand?: string
+  vehicleModel?: string
+  vehicleNumber?: string
+  vehicleColor?: string
+  emergencyContact?: string
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
@@ -90,6 +97,12 @@ export async function loginWithEmail(email: string, pass: string): Promise<AuthU
         uid: data.user?.id || 'backend-' + Date.now(),
         email: data.user?.email || email,
         displayName: data.user?.fullName || email.split('@')[0],
+        phoneNumber: data.user?.phoneNumber,
+        vehicleType: data.user?.vehicleType,
+        vehicleBrand: data.user?.vehicleBrand,
+        vehicleModel: data.user?.vehicleModel,
+        vehicleNumber: data.user?.vehicleNumber,
+        emergencyContact: data.user?.emergencyContact,
       }
       if (typeof window !== 'undefined') {
         localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
@@ -100,13 +113,27 @@ export async function loginWithEmail(email: string, pass: string): Promise<AuthU
     // Backend API offline or unreachable
   }
 
-  // 2. Try Firebase Auth
+  // 2. Try Firebase Auth or saved local session
+  let savedLocalVehicle: Partial<AuthUser> = {}
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('lifeos_demo_user')
+      if (existing) {
+        const parsed = JSON.parse(existing)
+        if (parsed.email === email) {
+          savedLocalVehicle = parsed
+        }
+      }
+    } catch (e) {}
+  }
+
   try {
     const res = await signInWithEmailAndPassword(auth, email, pass)
     const user: AuthUser = {
       uid: res.user.uid,
       email: res.user.email,
       displayName: res.user.displayName || email.split('@')[0],
+      ...savedLocalVehicle,
     }
     if (typeof window !== 'undefined') {
       localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
@@ -117,6 +144,7 @@ export async function loginWithEmail(email: string, pass: string): Promise<AuthU
       uid: 'user-' + Date.now(),
       email: email,
       displayName: email.split('@')[0],
+      ...savedLocalVehicle,
     }
     if (typeof window !== 'undefined') {
       localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
@@ -134,6 +162,7 @@ export type RegisterParams = {
   vehicleBrand: string
   vehicleModel: string
   vehicleNumber: string
+  vehicleColor?: string
   emergencyContact: string
 }
 
@@ -145,6 +174,47 @@ export async function registerWithEmail(
   const email = typeof params === 'string' ? params : params.email
   const password = typeof params === 'string' ? pass || '' : params.password
   const fullName = typeof params === 'string' ? email.split('@')[0] : params.fullName || email.split('@')[0]
+  const phoneNumber = typeof params === 'string' ? '' : params.phoneNumber || ''
+  const vehicleType = typeof params === 'string' ? '' : params.vehicleType || ''
+  const vehicleBrand = typeof params === 'string' ? '' : params.vehicleBrand || ''
+  const vehicleModel = typeof params === 'string' ? '' : params.vehicleModel || ''
+  const vehicleNumber = typeof params === 'string' ? '' : params.vehicleNumber || ''
+  const vehicleColor = typeof params === 'string' ? '' : params.vehicleColor || ''
+  const emergencyContact = typeof params === 'string' ? '' : params.emergencyContact || ''
+
+  const userObj: AuthUser = {
+    uid: 'user-' + Date.now(),
+    email,
+    displayName: fullName,
+    phoneNumber,
+    vehicleType,
+    vehicleBrand,
+    vehicleModel,
+    vehicleNumber,
+    vehicleColor,
+    emergencyContact,
+  }
+
+  // Auto-register vehicle into localStorage Garage for this user
+  if (typeof window !== 'undefined' && (vehicleModel || vehicleNumber)) {
+    const vName = vehicleBrand ? `${vehicleBrand} ${vehicleModel}` : vehicleModel || 'Tesla Model 3'
+    const newVehicle = {
+      id: 'v-' + Date.now(),
+      name: vName,
+      plate: vehicleNumber || 'TN 07 CX 4218',
+      color: vehicleColor || 'Midnight Silver',
+    }
+    const garageKey = `lifeos_garage_${email}`
+    const primaryKey = `lifeos_primary_vehicle_${email}`
+    try {
+      const existingGarage = localStorage.getItem(garageKey)
+      let vehiclesList = existingGarage ? JSON.parse(existingGarage) : []
+      // Prepend newly registered vehicle
+      vehiclesList = [newVehicle, ...vehiclesList.filter((v: any) => v.plate !== newVehicle.plate)]
+      localStorage.setItem(garageKey, JSON.stringify(vehiclesList))
+      localStorage.setItem(primaryKey, newVehicle.id)
+    } catch (e) {}
+  }
 
   // 1. Try Express Backend API first
   try {
@@ -158,15 +228,11 @@ export async function registerWithEmail(
       body: JSON.stringify(payload),
     })
     if (res.ok) {
-      const user: AuthUser = {
-        uid: 'backend-' + Date.now(),
-        email,
-        displayName: fullName,
-      }
+      userObj.uid = 'backend-' + Date.now()
       if (typeof window !== 'undefined') {
-        localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
+        localStorage.setItem('lifeos_demo_user', JSON.stringify(userObj))
       }
-      return user
+      return userObj
     }
   } catch (backendErr) {
     // Backend API offline
@@ -175,25 +241,16 @@ export async function registerWithEmail(
   // 2. Try Firebase Auth
   try {
     const res = await createUserWithEmailAndPassword(auth, email, password)
-    const user: AuthUser = {
-      uid: res.user.uid,
-      email: res.user.email,
-      displayName: fullName,
-    }
+    userObj.uid = res.user.uid
     if (typeof window !== 'undefined') {
-      localStorage.setItem('lifeos_demo_user', JSON.stringify(user))
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(userObj))
     }
-    return user
+    return userObj
   } catch (error: any) {
-    const demoUser: AuthUser = {
-      uid: 'user-' + Date.now(),
-      email: email,
-      displayName: fullName,
-    }
     if (typeof window !== 'undefined') {
-      localStorage.setItem('lifeos_demo_user', JSON.stringify(demoUser))
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(userObj))
     }
-    return demoUser
+    return userObj
   }
 }
 

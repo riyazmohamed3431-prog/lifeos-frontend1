@@ -42,6 +42,7 @@ export function ProfileScreen({
   vehicles: initialVehiclesList,
   primaryVehicleId: initialPrimaryId,
   onVehiclesChange,
+  onUpdateUser,
 }: {
   user?: AuthUser | null
   onLogout?: () => void
@@ -49,18 +50,73 @@ export function ProfileScreen({
   vehicles: Vehicle[]
   primaryVehicleId: string
   onVehiclesChange: (vehicles: Vehicle[], primaryId: string) => void
+  onUpdateUser?: (updatedUser: AuthUser) => void
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('all')
-
-  // User identity defaults
-  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Riyaz Mohamed')
-  const email = user?.email || 'riyaz@lifeos.app'
-  const phoneNumber = '+91 98400 12345'
-  const driverLicense = 'TN-07-2022-89410'
 
   // Use parent props directly to avoid duplicate states and synchronization bugs
   const garageVehicles = initialVehiclesList
   const primaryVehicleId = initialPrimaryId
+
+  // Derive current primary vehicle
+  const primaryVehicle = garageVehicles.find((v) => v.id === primaryVehicleId) || garageVehicles[0] || initialVehicles[0]
+
+  // User identity defaults
+  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Riyaz Mohamed')
+  const email = user?.email || 'riyaz@lifeos.app'
+  const phoneNumber = user?.phoneNumber || '+91 98400 12345'
+  const driverLicense = 'TN-07-2022-89410'
+  const vehicleType = user?.vehicleType || 'Electric Vehicle / Sedan'
+
+  // Profile & Primary Vehicle Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [editName, setEditName] = useState(displayName)
+  const [editPhone, setEditPhone] = useState(phoneNumber)
+  const [editPVName, setEditPVName] = useState(primaryVehicle.name)
+  const [editPVPlate, setEditPVPlate] = useState(primaryVehicle.plate)
+  const [editPVColor, setEditPVColor] = useState(primaryVehicle.color)
+
+  const handleStartEditProfile = () => {
+    setEditName(displayName)
+    setEditPhone(phoneNumber)
+    setEditPVName(primaryVehicle.name)
+    setEditPVPlate(primaryVehicle.plate)
+    setEditPVColor(primaryVehicle.color)
+    setIsEditingProfile(true)
+  }
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editPVName.trim() || !editPVPlate.trim()) return
+
+    // Update primary vehicle in garage
+    const updatedVehicles = garageVehicles.map((v) =>
+      v.id === primaryVehicle.id
+        ? {
+            ...v,
+            name: editPVName.trim(),
+            plate: editPVPlate.trim(),
+            color: editPVColor.trim() || v.color,
+          }
+        : v
+    )
+    onVehiclesChange(updatedVehicles, primaryVehicle.id)
+
+    // Update AuthUser
+    if (onUpdateUser) {
+      onUpdateUser({
+        uid: user?.uid || 'user-' + Date.now(),
+        email: user?.email || email,
+        displayName: editName.trim() || displayName,
+        phoneNumber: editPhone.trim() || phoneNumber,
+        vehicleModel: editPVName.trim(),
+        vehicleNumber: editPVPlate.trim(),
+        vehicleColor: editPVColor.trim(),
+        vehicleType: vehicleType,
+      })
+    }
+    setIsEditingProfile(false)
+  }
   
   // Add Vehicle State
   const [showAddVehicle, setShowAddVehicle] = useState(false)
@@ -213,7 +269,7 @@ export function ProfileScreen({
 
       <div className="relative z-10 space-y-6">
 
-        {/* User Identity Hero Card */}
+        {/* User Identity Hero Card with Entered Vehicle Badge */}
         <WarmCard variant="white" className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[#E2E8F0] shadow-md min-w-0">
           <div className="flex items-center gap-4 min-w-0 flex-1">
             <div className="grid size-14 sm:size-16 place-items-center rounded-3xl bg-[#0F766E]/10 text-[#0F766E] font-black text-xl border border-[#0F766E]/20 shadow-sm shrink-0">
@@ -225,7 +281,13 @@ export function ProfileScreen({
                 <ShieldCheck className="size-5 text-[#0F766E] shrink-0" />
               </div>
               <p className="text-xs text-[#475569] dark:text-[#94A3B8] font-mono truncate">{email}</p>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5">
+              
+              {/* Active Vehicle & VIP Badges */}
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20">
+                  <Car className="size-3.5" />
+                  {primaryVehicle.name} ({primaryVehicle.plate})
+                </span>
                 <WarmBadge variant="emerald" className="shrink-0">Verified Driver</WarmBadge>
                 <WarmBadge variant="purple" className="shrink-0">Executive VIP Tier</WarmBadge>
               </div>
@@ -271,34 +333,149 @@ export function ProfileScreen({
           })}
         </div>
 
-        {/* OPTION SECTION 1: Personal Driver Info */}
+        {/* OPTION SECTION 1: Personal Driver Info & Entered Vehicle Card */}
         {(activeTab === 'all' || activeTab === 'personal') && (
           <div className="space-y-3">
-            <h2 className="text-xs font-black uppercase tracking-wider text-[#475569] dark:text-[#94A3B8] px-1 flex items-center gap-2">
-              <User className="size-3.5 text-[#0F766E]" /> Driver Credentials & Info
-            </h2>
-            <WarmCard variant="white" className="p-4 sm:p-5 border border-[#E2E8F0] space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Full Name</p>
-                  <p className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC]">{displayName}</p>
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-black uppercase tracking-wider text-[#475569] dark:text-[#94A3B8] flex items-center gap-2">
+                <User className="size-3.5 text-[#0F766E]" /> Driver Credentials & Profile Details
+              </h2>
+              <button
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="text-xs font-extrabold text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Pencil className="size-3.5" />
+                <span>{isEditingProfile ? 'Cancel Editing' : 'Edit Profile & Vehicle'}</span>
+              </button>
+            </div>
+
+            {/* Profile & Vehicle Edit Form */}
+            {isEditingProfile ? (
+              <form onSubmit={handleSaveProfile} className="p-5 bg-card border border-[#2563EB]/40 rounded-2xl space-y-4 shadow-md animate-in fade-in duration-200">
+                <p className="text-xs font-black text-[#2563EB] flex items-center gap-1.5 border-b pb-2 border-border">
+                  <Pencil className="size-4" /> Edit Driver Info & Primary Vehicle
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Full Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="surface-glass w-full rounded-xl px-3.5 py-2 text-xs text-foreground border border-border focus:outline-none focus:border-[#2563EB] mt-1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Phone Number</label>
+                    <input
+                      type="text"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className="surface-glass w-full rounded-xl px-3.5 py-2 text-xs text-foreground border border-border focus:outline-none focus:border-[#2563EB] mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Vehicle Model / Name</label>
+                    <input
+                      type="text"
+                      value={editPVName}
+                      onChange={(e) => setEditPVName(e.target.value)}
+                      className="surface-glass w-full rounded-xl px-3.5 py-2 text-xs text-foreground border border-border focus:outline-none focus:border-[#2563EB] mt-1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Plate Number</label>
+                    <input
+                      type="text"
+                      value={editPVPlate}
+                      onChange={(e) => setEditPVPlate(e.target.value)}
+                      className="surface-glass w-full rounded-xl px-3.5 py-2 text-xs text-foreground border border-border focus:outline-none focus:border-[#2563EB] mt-1"
+                      required
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Vehicle Color</label>
+                    <input
+                      type="text"
+                      value={editPVColor}
+                      onChange={(e) => setEditPVColor(e.target.value)}
+                      className="surface-glass w-full rounded-xl px-3.5 py-2 text-xs text-foreground border border-border focus:outline-none focus:border-[#2563EB] mt-1"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Email Address</p>
-                  <p className="text-xs font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">{email}</p>
+                <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                  <WarmButton type="button" variant="ghost" size="sm" onClick={() => setIsEditingProfile(false)}>
+                    Cancel
+                  </WarmButton>
+                  <WarmButton type="submit" variant="primary" size="sm">
+                    Save Changes
+                  </WarmButton>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Registered Phone</p>
-                  <p className="text-xs font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">{phoneNumber}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Driver License Number</p>
-                  <p className="text-xs font-mono font-bold text-[#0F766E] flex items-center gap-1">
-                    <CheckCircle2 className="size-3.5 text-[#0F766E]" /> {driverLicense}
-                  </p>
-                </div>
+              </form>
+            ) : (
+              <div className="space-y-3">
+                {/* Personal Information */}
+                <WarmCard variant="white" className="p-4 sm:p-5 border border-[#E2E8F0] space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Full Name</p>
+                      <p className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC]">{displayName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Email Address</p>
+                      <p className="text-xs font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">{email}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Registered Phone</p>
+                      <p className="text-xs font-mono font-bold text-[#0F172A] dark:text-[#F8FAFC]">{phoneNumber}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Driver License Number</p>
+                      <p className="text-xs font-mono font-bold text-[#0F766E] flex items-center gap-1">
+                        <CheckCircle2 className="size-3.5 text-[#0F766E]" /> {driverLicense}
+                      </p>
+                    </div>
+                  </div>
+                </WarmCard>
+
+                {/* Primary Entered Vehicle Spotlight Card */}
+                <WarmCard variant="blue" className="p-4 sm:p-5 border border-[#2563EB]/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CategoryIconBox icon={Car} color="blue" />
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]">
+                          Primary Entered Vehicle
+                        </span>
+                        <h3 className="text-sm sm:text-base font-black text-[#0F172A] dark:text-[#F8FAFC]">
+                          {primaryVehicle.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <WarmBadge variant="blue" className="font-mono text-xs">
+                      {primaryVehicle.plate}
+                    </WarmBadge>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-[#2563EB]/15 text-xs">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Vehicle Model</p>
+                      <p className="font-black text-[#0F172A] dark:text-[#F8FAFC]">{primaryVehicle.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Registration Plate</p>
+                      <p className="font-mono font-black text-[#2563EB]">{primaryVehicle.plate}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Color & Type</p>
+                      <p className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">{primaryVehicle.color} · {vehicleType}</p>
+                    </div>
+                  </div>
+                </WarmCard>
               </div>
-            </WarmCard>
+            )}
           </div>
         )}
 

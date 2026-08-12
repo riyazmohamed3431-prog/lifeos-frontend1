@@ -78,16 +78,21 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber
-      }
-    });
+      res.status(200).json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          vehicleType: user.vehicleType,
+          vehicleBrand: user.vehicleBrand,
+          vehicleModel: user.vehicleModel,
+          vehicleNumber: user.vehicleNumber,
+          emergencyContact: user.emergencyContact
+        }
+      });
   } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -152,7 +157,12 @@ router.post("/login-sync", async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        phoneNumber: user.phoneNumber
+        phoneNumber: user.phoneNumber,
+        vehicleType: user.vehicleType,
+        vehicleBrand: user.vehicleBrand,
+        vehicleModel: user.vehicleModel,
+        vehicleNumber: user.vehicleNumber,
+        emergencyContact: user.emergencyContact
       }
     });
   } catch (error) {

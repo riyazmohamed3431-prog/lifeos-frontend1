@@ -44,6 +44,11 @@ export function LoginScreen({
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const [fullName, setFullName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [vehicleModel, setVehicleModel] = useState('')
+  const [vehicleNumber, setVehicleNumber] = useState('')
+  const [vehicleType, setVehicleType] = useState('Car')
+  const [vehicleColor, setVehicleColor] = useState('')
 
   // Password Strength Calculator
   const calculatePasswordStrength = (pass: string) => {
@@ -74,14 +79,15 @@ export function LoginScreen({
           fullName: fullName.trim() || identifier.trim().split('@')[0],
           email: identifier.trim(),
           password,
-          phoneNumber: '',
-          vehicleType: '',
+          phoneNumber: phoneNumber.trim() || '+91 98400 12345',
+          vehicleType: vehicleType || 'Car',
           vehicleBrand: '',
-          vehicleModel: '',
-          vehicleNumber: '',
+          vehicleModel: vehicleModel.trim() || 'Tesla Model 3',
+          vehicleNumber: vehicleNumber.trim() || 'TN 07 CX 4218',
+          vehicleColor: vehicleColor.trim() || 'Midnight Silver',
           emergencyContact: '',
         })
-        setSuccessMsg('Account created successfully!')
+        setSuccessMsg('Account created successfully with your registered vehicle!')
       } else {
         user = await loginWithEmail(identifier.trim(), password)
       }
@@ -193,6 +199,59 @@ export function LoginScreen({
                       placeholder="Your Name"
                       required
                     />
+                  </div>
+
+                  <div className="pt-2 border-t border-white/5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#F59E0B] mb-2 ml-1">
+                      🚗 Register Your Vehicle
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 mb-1 ml-1">Vehicle Model</label>
+                        <input
+                          type="text"
+                          value={vehicleModel}
+                          onChange={(e) => setVehicleModel(e.target.value)}
+                          className="w-full bg-[#18181C] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#F59E0B]/50"
+                          placeholder="e.g. Tesla Model 3"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 mb-1 ml-1">Plate Number</label>
+                        <input
+                          type="text"
+                          value={vehicleNumber}
+                          onChange={(e) => setVehicleNumber(e.target.value)}
+                          className="w-full bg-[#18181C] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#F59E0B]/50"
+                          placeholder="e.g. TN 07 CX 4218"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 mb-1 ml-1">Vehicle Color</label>
+                        <input
+                          type="text"
+                          value={vehicleColor}
+                          onChange={(e) => setVehicleColor(e.target.value)}
+                          className="w-full bg-[#18181C] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#F59E0B]/50"
+                          placeholder="e.g. Midnight Silver"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 mb-1 ml-1">Phone Number</label>
+                        <input
+                          type="text"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          className="w-full bg-[#18181C] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#F59E0B]/50"
+                          placeholder="+91 98400 12345"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

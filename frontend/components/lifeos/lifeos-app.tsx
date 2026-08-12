@@ -46,22 +46,54 @@ export function LifeOSApp() {
   // Sync state on user load/change
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      let currentVehicles: Vehicle[] = []
       const storedVehicles = localStorage.getItem(vehiclesKey)
       if (storedVehicles) {
         try {
-          setUserVehicles(JSON.parse(storedVehicles))
+          currentVehicles = JSON.parse(storedVehicles)
         } catch (e) {
-          setUserVehicles(vehicles)
+          currentVehicles = []
         }
-      } else {
-        setUserVehicles(vehicles)
       }
 
+      // If user has entered vehicle details, ensure garage has their vehicle as primary
+      if (user?.vehicleModel || user?.vehicleNumber) {
+        const vName = user.vehicleBrand ? `${user.vehicleBrand} ${user.vehicleModel}` : user.vehicleModel || 'Tesla Model 3'
+        const enteredPlate = user.vehicleNumber || 'TN 07 CX 4218'
+        const enteredColor = user.vehicleColor || 'Midnight Silver'
+
+        const existingIdx = currentVehicles.findIndex((v) => v.plate.toLowerCase() === enteredPlate.toLowerCase())
+        if (existingIdx !== -1) {
+          currentVehicles[existingIdx] = {
+            ...currentVehicles[existingIdx],
+            name: vName,
+            color: enteredColor,
+          }
+        } else {
+          const userV: Vehicle = {
+            id: 'v-user-' + Date.now(),
+            name: vName,
+            plate: enteredPlate,
+            color: enteredColor,
+          }
+          // Filter out default demo mock vehicles if user has their own single vehicle
+          const userAddedOnly = currentVehicles.filter((v) => v.id !== 'v1' && v.id !== 'v2' && v.id !== 'v3')
+          currentVehicles = [userV, ...userAddedOnly]
+        }
+        localStorage.setItem(vehiclesKey, JSON.stringify(currentVehicles))
+        localStorage.setItem(primaryVehicleKey, currentVehicles[0].id)
+      } else if (currentVehicles.length === 0) {
+        // Fallback demo user default
+        currentVehicles = [vehicles[0]]
+      }
+
+      setUserVehicles(currentVehicles)
+
       const storedPrimary = localStorage.getItem(primaryVehicleKey)
-      if (storedPrimary) {
+      if (storedPrimary && currentVehicles.some((v) => v.id === storedPrimary)) {
         setSelectedVehicleId(storedPrimary)
-      } else {
-        setSelectedVehicleId(vehicles[0].id)
+      } else if (currentVehicles.length > 0) {
+        setSelectedVehicleId(currentVehicles[0].id)
       }
 
       const storedHistory = localStorage.getItem(historyKey)
@@ -75,7 +107,7 @@ export function LifeOSApp() {
         setUserHistory(history)
       }
     }
-  }, [userEmail, vehiclesKey, primaryVehicleKey, historyKey])
+  }, [userEmail, vehiclesKey, primaryVehicleKey, historyKey, user?.vehicleModel, user?.vehicleNumber, user?.vehicleBrand, user?.vehicleColor])
 
   const handleVehiclesChange = (newVehicles: Vehicle[], newPrimaryId: string) => {
     setUserVehicles(newVehicles)
@@ -83,6 +115,13 @@ export function LifeOSApp() {
     if (typeof window !== 'undefined') {
       localStorage.setItem(vehiclesKey, JSON.stringify(newVehicles))
       localStorage.setItem(primaryVehicleKey, newPrimaryId)
+    }
+  }
+
+  const handleUpdateUser = (updatedUser: AuthUser) => {
+    setUser(updatedUser)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifeos_demo_user', JSON.stringify(updatedUser))
     }
   }
 
@@ -200,7 +239,7 @@ export function LifeOSApp() {
           onNavigateProfile={() => go('profile')}
         />
       )}
-      {screen === 'map' && <MapScreen onEmergency={() => startEmergency(null)} />}
+      {screen === 'map' && <MapScreen vehicles={userVehicles} onEmergency={() => startEmergency(null)} />}
       {screen === 'booking' && (
         <BookingScreen
           vehicles={userVehicles}
@@ -255,6 +294,7 @@ export function LifeOSApp() {
           vehicles={userVehicles}
           primaryVehicleId={selectedVehicleId}
           onVehiclesChange={handleVehiclesChange}
+          onUpdateUser={handleUpdateUser}
         />
       )}
     </div>
