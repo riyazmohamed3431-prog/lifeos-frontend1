@@ -287,7 +287,7 @@ export function RequestStatusScreen({
         </button>
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-2 space-y-6 max-w-2xl mx-auto flex-1 w-full">
+      <div className="relative z-10 px-2 sm:px-4 pt-2 space-y-6 flex-1 w-full">
         {/* Dynamic ID Search Selector */}
         <form onSubmit={handleSearchSubmit} className="p-4 rounded-3xl bg-card border border-border shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex items-center gap-2">
           <input

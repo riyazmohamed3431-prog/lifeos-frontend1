@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </radialGradient>
+    <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E2E8F0"/>
+      <stop offset="50%" stop-color="#94A3B8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="gaugeFace" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="tempScale" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="40%" stop-color="#10B981"/>
+      <stop offset="70%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+    <linearGradient id="needleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#DC2626"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="500" rx="32" fill="url(#bgGrad)"/>
+
+  <!-- Main Gauge Group -->
+  <g filter="url(#shadow)">
+    <!-- Outer Bezel Ring -->
+    <circle cx="250" cy="250" r="175" fill="url(#bezelGrad)"/>
+    <circle cx="250" cy="250" r="165" fill="#FFFFFF"/>
+    <circle cx="250" cy="250" r="158" fill="url(#gaugeFace)"/>
+
+    <!-- Temperature Scale Arc -->
+    <path d="M 135,280 A 130,130 0 1,1 365,280" fill="none" stroke="url(#tempScale)" stroke-width="14" stroke-linecap="round"/>
+
+    <!-- Cold / Hot Labels -->
+    <text x="130" y="325" font-family="system-ui, sans-serif" font-weight="900" font-size="22" fill="#64748B" text-anchor="middle">C</text>
+    <text x="370" y="325" font-family="system-ui, sans-serif" font-weight="900" font-size="22" fill="#EF4444" text-anchor="middle">H</text>
+
+    <!-- Scale Tick Marks -->
+    <!-- C mark -->
+    <line x1="145" y1="260" x2="160" y2="255" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+    <!-- Middle mark -->
+    <line x1="250" y1="135" x2="250" y2="150" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+    <!-- H mark (Hot - Warning area) -->
+    <line x1="355" y1="260" x2="340" y2="255" stroke="#EF4444" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Overheating Glow Warning -->
+    <circle cx="340" cy="235" r="8" fill="#EF4444" filter="url(#glow)"/>
+
+    <!-- Thermometer Icon in Center -->
+    <g transform="translate(250, 290) scale(1.4)" filter="url(#glow)">
+      <!-- Thermometer stem -->
+      <path d="M -4,-25 L 4,-25 A 4,4 0 0,1 4,-5 A 12,12 0 1,1 -4,-5 A 4,4 0 0,1 -4,-25 Z" fill="none" stroke="#EF4444" stroke-width="3.5" stroke-linejoin="round"/>
+      <!-- Thermometer liquid fill -->
+      <circle cx="0" cy="4" r="7" fill="#EF4444"/>
+      <rect x="-2" y="-18" width="4" height="20" rx="2" fill="#EF4444"/>
+      <!-- Heat waves -->
+      <path d="M -14,-15 C -12,-18 -12,-20 -14,-23" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 14,-15 C 16,-18 16,-20 14,-23" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- Gauge Needle (Pointing towards H / Overheating zone) -->
+    <g transform="rotate(65 250 250)">
+      <polygon points="244,250 250,130 256,250" fill="url(#needleGrad)" filter="url(#glow)"/>
+      <circle cx="250" cy="250" r="16" fill="#0F172A" stroke="#475569" stroke-width="4"/>
+      <circle cx="250" cy="250" r="6" fill="#EF4444"/>
+    </g>
+
+    <!-- OVERHEAT Status Text -->
+    <text x="250" y="390" font-family="system-ui, sans-serif" font-weight="900" font-size="16" letter-spacing="3" fill="#EF4444" text-anchor="middle" filter="url(#glow)">HIGH TEMP</text>
+  </g>
+</svg>

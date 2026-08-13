@@ -126,7 +126,7 @@ export function PaymentScreen({
       )}
 
       {!paid ? (
-        <div className="relative z-10 flex h-full flex-col justify-between space-y-6 max-w-xl mx-auto w-full">
+        <div className="relative z-10 flex h-full flex-col justify-between space-y-6 w-full">
           <div className="space-y-2">
             <WarmBadge variant="emerald">On-Site Repair Complete</WarmBadge>
             <h1 className="text-2xl font-black tracking-tight text-foreground">
@@ -219,7 +219,7 @@ export function PaymentScreen({
           </WarmButton>
         </div>
       ) : (
-        <div className="relative z-10 flex h-full flex-col justify-between items-center text-center space-y-6 max-w-xl mx-auto w-full">
+        <div className="relative z-10 flex h-full flex-col justify-between items-center text-center space-y-6 w-full">
           <div className="space-y-4 pt-4">
             <div className="grid size-20 place-items-center rounded-full bg-[#0F766E]/10 text-[#0F766E] mx-auto border border-[#0F766E]/30 shadow-lg">
               <Check className="size-10 text-[#0F766E]" strokeWidth={3} />

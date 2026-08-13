@@ -221,7 +221,7 @@ export function MechanicDashboardScreen({
         </button>
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-2 space-y-6 max-w-2xl mx-auto flex-1 w-full">
+      <div className="relative z-10 px-2 sm:px-4 pt-2 space-y-6 flex-1 w-full">
         {/* Mechanic ID Selector */}
         {process.env.NODE_ENV !== 'production' ? (
           <div className="space-y-2">

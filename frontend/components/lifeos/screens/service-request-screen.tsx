@@ -154,7 +154,7 @@ export function ServiceRequestScreen({
         <div className="size-10" />
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-2 space-y-6 max-w-2xl mx-auto flex-1 w-full">
+      <div className="relative z-10 px-2 sm:px-4 pt-2 space-y-6 flex-1 w-full">
         {/* Title */}
         <div>
           <h2 className="text-xl font-black tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">

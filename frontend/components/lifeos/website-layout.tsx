@@ -147,8 +147,8 @@ export function WebsiteLayout({
       )}>
         {/* Top Header Toolbar */}
         <div className={cn(
-          "flex items-center justify-between border-b border-neutral-200/80 shrink-0 bg-white/40 backdrop-blur-md z-30",
-          viewMode === 'mobile' ? 'px-3 pt-9 pb-2.5' : 'px-6 py-4'
+          "flex items-center justify-between border-b border-neutral-200/80 shrink-0 bg-white/40 backdrop-blur-md z-30 w-full",
+          viewMode === 'mobile' ? 'px-3 pt-9 pb-2.5' : 'px-6 lg:px-10 py-4'
         )}>
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-[#0F766E] animate-pulse" />
@@ -161,15 +161,31 @@ export function WebsiteLayout({
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Elements removed as requested */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => alert("LifeOS Priority Hotline: +91 98400 32145\n24/7 Roadside Assistance Center is standing by.")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 transition-colors cursor-pointer"
+            >
+              <HelpCircle className="size-3.5 text-indigo-500" />
+              <span>Need Help?</span>
+            </button>
+
+            <div className="flex items-center gap-2 pl-2 border-l border-neutral-200 dark:border-white/10 cursor-pointer" onClick={() => onNavigate('profile')}>
+              <div className="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-sm">
+                {user?.displayName ? user.displayName.substring(0, 2).toUpperCase() : 'R'}
+              </div>
+              <span className="text-xs font-black text-neutral-800 dark:text-neutral-100 hidden sm:inline">
+                {user?.displayName || 'Riyaz'}
+              </span>
+              <ChevronDown className="size-3.5 text-neutral-400" />
+            </div>
           </div>
         </div>
 
         {/* Scrollable Children Content Container */}
         <div className={cn(
-          "flex-1 overflow-y-auto no-scrollbar",
-          viewMode === 'mobile' ? 'p-3' : 'p-6'
+          "flex-1 overflow-y-auto no-scrollbar w-full",
+          viewMode === 'mobile' ? 'p-3' : 'p-4 lg:p-6'
         )}>
           {children}
         </div>

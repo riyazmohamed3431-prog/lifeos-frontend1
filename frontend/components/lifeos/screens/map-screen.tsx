@@ -53,7 +53,7 @@ export function MapScreen({
   const vehicleList = userVehicles && userVehicles.length > 0 ? userVehicles : vehicles
 
   // Real-world Device Geolocation
-  const { location, loading: locationLoading, error: locationError, requestLocation } = useLocation()
+  const { location, loading: locationLoading, error: locationError, permissionState, requestLocation } = useLocation()
 
   // Calling modal state
   const [calling, setCalling] = useState(false)
@@ -127,7 +127,7 @@ export function MapScreen({
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32 font-sans text-[#0F172A] dark:text-[#F8FAFC]">
       
-      <div className="relative z-10 px-4 sm:px-6 pt-3 space-y-6 max-w-4xl mx-auto">
+      <div className="relative z-10 px-2 sm:px-4 pt-3 space-y-6 w-full">
         
         {/* Header Vehicle Command Bar */}
         <FadeIn delay={0.05} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] dark:border-white/10 pb-4">
@@ -181,12 +181,20 @@ export function MapScreen({
                   <span className="text-[#0F766E] font-mono font-bold">
                     GPS Active · {location.latitude.toFixed(4)}°, {location.longitude.toFixed(4)}°
                   </span>
+                ) : permissionState === 'denied' ? (
+                  <span className="text-red-500 font-semibold">Location Access Blocked by Browser</span>
                 ) : (
                   <span className="text-red-500 font-semibold">{locationError || 'Location permissions denied'}</span>
                 )}
               </p>
               <p className="text-[10px] text-muted-foreground font-medium">
-                {location ? 'Real-world GPS coordinates linked' : 'Enable device location to discover real nearby services'}
+                {location ? (
+                  'Real-world GPS coordinates linked'
+                ) : permissionState === 'denied' ? (
+                  'Please click the lock/settings icon in your browser URL bar to allow Location, then click Refresh GPS.'
+                ) : (
+                  'Click Refresh GPS to allow location access and discover real nearby services.'
+                )}
               </p>
             </div>
           </div>

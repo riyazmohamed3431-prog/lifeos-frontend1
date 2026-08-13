@@ -23,7 +23,7 @@ export function HistoryScreen({ userHistory = history }: { userHistory?: History
   })
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar px-4 sm:px-6 pt-3 pb-32 font-sans text-[#0F172A] dark:text-[#F8FAFC] max-w-4xl mx-auto">
+    <div className="relative h-full overflow-y-auto no-scrollbar px-2 sm:px-4 pt-3 pb-32 font-sans text-[#0F172A] dark:text-[#F8FAFC] w-full">
       <AmbientBg tone="primary" />
 
       <div className="relative z-10 space-y-6">
