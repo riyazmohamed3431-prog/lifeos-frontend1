@@ -270,25 +270,29 @@ export function HomeScreen({
           </div>
         </div>
 
-        {/* CARD 2 — NEED ROADSIDE ASSISTANCE? (WARM PEACH) */}
-        <div className="md:col-span-4 bg-[#FFFBEB] dark:bg-amber-950/30 rounded-3xl border border-amber-200/80 dark:border-amber-800/40 p-5 flex flex-col justify-between space-y-4 shadow-2xs relative overflow-hidden">
-          <div className="border-b border-amber-200/50 dark:border-amber-800/30 pb-2.5">
+        {/* CARD 2 — NEED ROADSIDE ASSISTANCE? (WARM PEACH WITH ROUND SOS BUTTON) */}
+        <div className="md:col-span-4 bg-[#FFFBEB] dark:bg-amber-950/30 rounded-3xl border border-amber-200/80 dark:border-amber-800/40 p-5 flex flex-col justify-between space-y-4 shadow-2xs relative overflow-hidden text-center">
+          <div className="border-b border-amber-200/50 dark:border-amber-800/30 pb-2.5 text-left">
             <h3 className="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider">
               Need Roadside Assistance?
             </h3>
           </div>
 
-          <div className="flex items-center justify-center my-1">
-            <div className="h-24 w-full rounded-2xl overflow-hidden bg-amber-100/50 dark:bg-amber-950/50 flex items-center justify-center p-2">
-              <img
-                src="/images/squad/standard-rescue-suv.jpg"
-                alt="Roadside Tow Truck"
-                className="max-h-full max-w-full object-contain rounded-xl"
-              />
-            </div>
+          {/* Central Round SOS Button */}
+          <div className="flex flex-col items-center justify-center my-2">
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
+              onClick={onEmergency}
+              className="relative flex flex-col items-center justify-center size-24 rounded-full bg-gradient-to-tr from-[#FF4D00] via-[#E11D48] to-[#F59E0B] text-white font-black shadow-lg shadow-orange-500/30 border-4 border-white dark:border-amber-900 cursor-pointer group"
+            >
+              <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping pointer-events-none" />
+              <AlertTriangle className="size-6 text-white mb-0.5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-black tracking-widest text-white">SOS</span>
+            </motion.button>
           </div>
 
-          <p className="text-[11px] text-amber-900 dark:text-amber-300 font-medium leading-tight">
+          <p className="text-[11px] text-amber-900 dark:text-amber-300 font-medium leading-tight text-center">
             Get instant help for any roadside emergency in just a tap.
           </p>
 
