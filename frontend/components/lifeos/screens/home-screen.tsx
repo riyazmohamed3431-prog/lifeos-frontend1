@@ -14,17 +14,16 @@ import {
   Wrench,
   BatteryCharging,
   Gauge,
-  Phone,
   Shield,
   Zap,
   MoreVertical,
   Activity,
   Award,
   CreditCard,
-  User,
   Check,
   ArrowRight,
   TrendingUp,
+  Cpu,
 } from 'lucide-react'
 import { CallModal } from '@/components/lifeos/call-modal'
 import { motion } from 'framer-motion'
@@ -75,7 +74,7 @@ export function HomeScreen({
     {
       id: 'battery',
       label: 'Battery Dead',
-      sub: 'Jump start / Replace',
+      sub: 'Jump Start / Replace',
       fee: 950,
       icon: Zap,
       emergency: emergencies.find((e) => e.id === 'battery') || emergencies[1],
@@ -102,7 +101,7 @@ export function HomeScreen({
     <div className="relative flex h-full flex-col overflow-y-auto no-scrollbar px-4 sm:px-8 pt-6 pb-28 font-sans text-foreground select-none w-full space-y-6">
       <AmbientBg tone="calm" />
 
-      {/* 1. HERO SECTION WITH GREETING & LANDSCAPE GRAPHIC */}
+      {/* 1. HERO SECTION WITH "Hello," GREETING & MY VEHICLE CARD */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full">
         {/* HERO LEFT GREETING (7 COLS ON LG) */}
         <div className="lg:col-span-7 bg-white dark:bg-[#151C2C] rounded-3xl border border-neutral-200/90 dark:border-white/10 p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden">
@@ -116,7 +115,7 @@ export function HomeScreen({
 
             <div className="space-y-1">
               <h2 className="text-xl sm:text-2xl font-bold text-neutral-500 dark:text-neutral-400">
-                Hey,
+                Hello,
               </h2>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0F172A] dark:text-[#F8FAFC]">
                 Mohamed Riyaz 👋
@@ -206,16 +205,17 @@ export function HomeScreen({
 
             <div className="flex items-center justify-between text-[11px] font-medium text-neutral-400 pt-1">
               <span>Remaining Range: <strong className="text-neutral-800 dark:text-neutral-100 font-mono font-bold">268 km</strong></span>
-              <span className="font-mono text-[10px]">Updated: Just now</span>
+              <span className="font-mono text-[10px]">Last Updated: 2 min ago</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. MIDDLE ROW: SAFETY SCORE + ROADSIDE SOS + LIVE VEHICLE HEALTH */}
+      {/* 2. MAIN THREE-CARD SECTION (SAFETY SCORE + ROADSIDE ASSISTANCE + LIVE VEHICLE HEALTH) */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full">
-        {/* SAFETY SCORE CARD (4 COLS ON MD/LG) */}
-        <div className="md:col-span-4 bg-gradient-to-br from-[#F0FDF4] to-[#DCFCE7] dark:from-emerald-950/40 dark:to-emerald-900/20 rounded-3xl border border-emerald-200 dark:border-emerald-800/40 p-6 flex flex-col justify-between space-y-5 shadow-sm">
+        
+        {/* CARD 1 — SAFETY SCORE (MINT / GREEN PASTEL BACKGROUND) */}
+        <div className="md:col-span-4 bg-gradient-to-br from-[#F0FDF4] to-[#DCFCE7] dark:from-emerald-950/40 dark:to-emerald-900/20 rounded-3xl border border-emerald-200 dark:border-emerald-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-emerald-200/60 dark:border-emerald-800/40 pb-3">
             <div className="flex items-center gap-2">
               <Award className="size-4 text-emerald-600 shrink-0" />
@@ -223,50 +223,71 @@ export function HomeScreen({
                 Safety Score
               </h3>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
-              Top 1% Safe
-            </span>
+            <button className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 shadow-2xs transition-colors cursor-pointer">
+              View Details
+            </button>
           </div>
 
-          <div className="space-y-2 text-center my-2">
+          <div className="space-y-1.5 text-center my-1">
             <div className="text-4xl font-black text-emerald-950 dark:text-emerald-100 font-mono tracking-tight">
-              98<span className="text-lg text-emerald-600 font-bold">/100</span>
+              98<span className="text-lg text-emerald-600 font-bold"> /100</span>
             </div>
             <p className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
-              Excellent Driving Behavior
+              Status: Excellent
             </p>
+
+            {/* Horizontal Progress Bar */}
+            <div className="h-2.5 w-full bg-emerald-200/60 dark:bg-emerald-950/80 rounded-full overflow-hidden mt-2 p-0.5">
+              <div className="h-full bg-emerald-600 rounded-full w-[98%]" />
+            </div>
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/40 text-xs font-medium text-emerald-900 dark:text-emerald-200">
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div>• Braking: <strong className="text-emerald-700">Optimal</strong></div>
-              <div>• Acceleration: <strong className="text-emerald-700">Smooth</strong></div>
-              <div>• Speeding: <strong className="text-emerald-700">Zero</strong></div>
-              <div>• Distractions: <strong className="text-emerald-700">None</strong></div>
+          {/* Four Performance Metrics */}
+          <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/40 space-y-2 text-xs text-emerald-950 dark:text-emerald-200">
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
+              <div className="flex justify-between items-center bg-white/60 dark:bg-emerald-900/40 p-1.5 rounded-lg">
+                <span>Braking</span> <strong className="font-mono text-emerald-700">97</strong>
+              </div>
+              <div className="flex justify-between items-center bg-white/60 dark:bg-emerald-900/40 p-1.5 rounded-lg">
+                <span>Acceleration</span> <strong className="font-mono text-emerald-700">95</strong>
+              </div>
+              <div className="flex justify-between items-center bg-white/60 dark:bg-emerald-900/40 p-1.5 rounded-lg">
+                <span>Speeding</span> <strong className="font-mono text-emerald-700">100</strong>
+              </div>
+              <div className="flex justify-between items-center bg-white/60 dark:bg-emerald-900/40 p-1.5 rounded-lg">
+                <span>Distractions</span> <strong className="font-mono text-emerald-700">98</strong>
+              </div>
+            </div>
+
+            <div className="pt-1 text-center">
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                Top 1% Safe Driver
+              </span>
             </div>
           </div>
         </div>
 
-        {/* ROADSIDE ASSISTANCE SOS CARD (4 COLS ON MD/LG) */}
-        <div className="md:col-span-4 bg-gradient-to-br from-[#1E1B2E] to-[#120F1D] text-white rounded-3xl border border-rose-500/30 p-6 flex flex-col justify-between space-y-5 shadow-xl relative overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        {/* CARD 2 — ROADSIDE ASSISTANCE (WARM CREAM / PEACH BACKGROUND) */}
+        <div className="md:col-span-4 bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] dark:from-amber-950/40 dark:to-amber-900/20 rounded-3xl border border-amber-200 dark:border-amber-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-800/40 pb-3">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="size-4.5 text-rose-500 animate-pulse shrink-0" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-white">
-                Roadside Assistance
+              <AlertTriangle className="size-4.5 text-amber-600 shrink-0" />
+              <h3 className="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider">
+                Need Roadside Assistance?
               </h3>
             </div>
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              24/7 Active
-            </span>
           </div>
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-black text-white">
-              Need Emergency SOS?
-            </h4>
-            <p className="text-xs text-neutral-300 font-medium leading-relaxed">
-              Experiencing a breakdown on the highway? 1-tap SOS dispatches master technicians immediately.
+          <div className="flex items-center gap-3">
+            <div className="size-16 rounded-2xl overflow-hidden border border-amber-200 shrink-0 bg-white p-1 flex items-center justify-center shadow-2xs">
+              <img
+                src="/images/squad/standard-rescue-suv.jpg"
+                alt="Tow Truck Assistance"
+                className="max-h-full max-w-full object-cover rounded-xl"
+              />
+            </div>
+            <p className="text-xs text-amber-950 dark:text-amber-300 font-medium leading-relaxed">
+              Get instant help for any roadside emergency in just a tap.
             </p>
           </div>
 
@@ -274,37 +295,37 @@ export function HomeScreen({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onEmergency}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white text-xs font-black shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-black shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <AlertTriangle className="size-4 animate-pulse text-white" />
-            <span>Request SOS Rescue</span>
+            <span>Request SOS</span>
           </motion.button>
         </div>
 
-        {/* LIVE VEHICLE HEALTH CARD (4 COLS ON MD/LG) */}
-        <div className="md:col-span-4 bg-white dark:bg-[#151C2C] rounded-3xl border border-neutral-200/90 dark:border-white/10 p-6 flex flex-col justify-between space-y-4 shadow-sm">
-          <div className="flex items-center justify-between border-b border-neutral-100 dark:border-white/5 pb-3">
+        {/* CARD 3 — LIVE VEHICLE HEALTH (SUBTLE LIGHT-BLUE BACKGROUND) */}
+        <div className="md:col-span-4 bg-gradient-to-br from-[#F0F9FF] to-[#E0F2FE] dark:from-blue-950/40 dark:to-blue-900/20 rounded-3xl border border-blue-200 dark:border-blue-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-blue-200/60 dark:border-blue-800/40 pb-3">
             <div className="flex items-center gap-2">
-              <Activity className="size-4.5 text-blue-600 shrink-0" />
-              <h3 className="text-xs font-black text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wider">
+              <Cpu className="size-4.5 text-blue-600 shrink-0" />
+              <h3 className="text-xs font-black text-blue-950 dark:text-blue-200 uppercase tracking-wider">
                 Live Vehicle Health
               </h3>
             </div>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/50">
-              ✓ All Healthy
-            </span>
+            <button className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-blue-700 border border-blue-200 hover:bg-blue-50 shadow-2xs transition-colors cursor-pointer">
+              View All
+            </button>
           </div>
 
-          <div className="space-y-2.5 text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          <div className="space-y-2 text-xs font-medium text-blue-950 dark:text-blue-200">
             {[
-              { label: 'Battery Health', status: '100% Normal' },
-              { label: 'Motor Drivetrain', status: '100% Normal' },
-              { label: 'Tyre Pressure', status: '100% Normal' },
-              { label: 'Brake System', status: '100% Normal' },
-              { label: 'Safety Sensors', status: '100% Normal' },
+              { label: 'Battery', status: 'Good' },
+              { label: 'Motor', status: 'Good' },
+              { label: 'Tyres', status: 'Good' },
+              { label: 'Brakes', status: 'Good' },
+              { label: 'Systems', status: 'Normal' },
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-white/5 border border-neutral-100 dark:border-white/5 text-[11px]">
-                <span>{item.label}</span>
+              <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-white/70 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/40 text-[11px]">
+                <span className="font-semibold">{item.label}</span>
                 <span className="font-bold text-emerald-600 flex items-center gap-1">
                   <Check className="size-3 stroke-[3]" /> {item.status}
                 </span>
@@ -322,7 +343,7 @@ export function HomeScreen({
               Popular Services
             </h3>
             <p className="text-xs text-neutral-400 font-medium">
-              Upfront quotes with guaranteed certified roadside assistance
+              We've got you covered
             </p>
           </div>
           <button
@@ -340,13 +361,13 @@ export function HomeScreen({
               <div
                 key={service.id}
                 onClick={() => onSelect(service.emergency)}
-                className="bg-neutral-50/80 dark:bg-white/5 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 p-5 rounded-2xl border border-neutral-200/80 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all cursor-pointer space-y-4 group shadow-2xs"
+                className="bg-neutral-50/80 dark:bg-white/5 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 p-5 rounded-2xl border border-neutral-200/80 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all cursor-pointer space-y-4 group shadow-2xs flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between">
                   <div className="size-11 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 text-indigo-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                     <ServiceIcon className="size-5" />
                   </div>
-                  <span className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400 bg-white dark:bg-neutral-900 px-3 py-1 rounded-xl border border-neutral-200 dark:border-white/10 shadow-2xs">
+                  <span className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 bg-white dark:bg-neutral-900 px-3 py-1 rounded-xl border border-neutral-200 dark:border-white/10 shadow-2xs">
                     ₹{service.fee}
                   </span>
                 </div>
@@ -362,7 +383,9 @@ export function HomeScreen({
 
                 <div className="pt-2 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400 border-t border-neutral-200/60 dark:border-white/5">
                   <span>Select Service</span>
-                  <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="size-6 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <ArrowRight className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </div>
               </div>
             )
@@ -370,14 +393,14 @@ export function HomeScreen({
         </div>
       </div>
 
-      {/* 4. BOTTOM TRUST / FEATURE STRIP (5 ITEMS) */}
-      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
+      {/* 4. TRUST / FEATURE STRIP (5 ITEMS) */}
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
         {[
-          { title: "You're in Safe Hands", desc: 'Trusted by thousands of drivers.', icon: ShieldCheck },
+          { title: "You're in Safe Hands", desc: 'Trusted by thousands of drivers. We ensure your safety, always.', icon: ShieldCheck },
           { title: 'Certified Experts', desc: 'Background verified professionals.', icon: Award },
-          { title: 'Quick Response', desc: 'Average response under 15 mins.', icon: Clock },
+          { title: 'Quick Response', desc: 'Avg. response time under 15 mins.', icon: Clock },
           { title: 'Cashless Payments', desc: 'Secure & hassle-free transactions.', icon: CreditCard },
-          { title: 'Live Tracking', desc: 'Track squad arrival in real-time.', icon: Navigation },
+          { title: 'Live Tracking', desc: 'Track your squad in real-time.', icon: Navigation },
         ].map((item, idx) => {
           const ItemIcon = item.icon
           return (
