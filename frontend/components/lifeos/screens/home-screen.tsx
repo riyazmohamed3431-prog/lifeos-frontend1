@@ -292,19 +292,9 @@ export function HomeScreen({
             </motion.button>
           </div>
 
-          <p className="text-[11px] text-amber-900 dark:text-amber-300 font-medium leading-tight text-center">
+          <p className="text-[11px] text-amber-900 dark:text-amber-300 font-medium leading-tight text-center pb-1">
             Get instant help for any roadside emergency in just a tap.
           </p>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onEmergency}
-            className="w-full py-3 rounded-2xl bg-[#FF4D00] hover:bg-[#E04400] text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Request SOS</span>
-            <AlertTriangle className="size-3.5 fill-white text-[#FF4D00]" />
-          </motion.button>
         </div>
 
         {/* CARD 3 — LIVE VEHICLE HEALTH (PALE BLUE) */}
