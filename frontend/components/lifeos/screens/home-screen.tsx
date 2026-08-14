@@ -9,12 +9,10 @@ import {
   AlertTriangle,
   ChevronRight,
   Clock,
-  CheckCircle2,
   Navigation,
   Wrench,
   BatteryCharging,
   Gauge,
-  Shield,
   Zap,
   MoreVertical,
   Activity,
@@ -22,7 +20,6 @@ import {
   CreditCard,
   Check,
   ArrowRight,
-  TrendingUp,
   Cpu,
 } from 'lucide-react'
 import { CallModal } from '@/components/lifeos/call-modal'
@@ -74,7 +71,7 @@ export function HomeScreen({
     {
       id: 'battery',
       label: 'Battery Dead',
-      sub: 'Jump Start / Replace',
+      sub: 'Jump start / Replace',
       fee: 950,
       icon: Zap,
       emergency: emergencies.find((e) => e.id === 'battery') || emergencies[1],
@@ -101,7 +98,7 @@ export function HomeScreen({
     <div className="relative flex h-full flex-col overflow-y-auto no-scrollbar px-4 sm:px-8 pt-6 pb-28 font-sans text-foreground select-none w-full space-y-6">
       <AmbientBg tone="calm" />
 
-      {/* 1. HERO SECTION WITH "Hello," GREETING & MY VEHICLE CARD */}
+      {/* 1. COMPACT HERO SECTION WITH "Hello," GREETING & MY VEHICLE CARD */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full">
         {/* HERO LEFT GREETING (7 COLS ON LG) */}
         <div className="lg:col-span-7 bg-white dark:bg-[#151C2C] rounded-3xl border border-neutral-200/90 dark:border-white/10 p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden">
@@ -149,7 +146,7 @@ export function HomeScreen({
             <div className="flex items-center gap-2">
               <Car className="size-4.5 text-indigo-600 shrink-0" />
               <h3 className="text-xs sm:text-sm font-black text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wider">
-                My Vehicle
+                MY VEHICLE
               </h3>
             </div>
             <div className="flex items-center gap-2">
@@ -211,16 +208,16 @@ export function HomeScreen({
         </div>
       </div>
 
-      {/* 2. MAIN THREE-CARD SECTION (SAFETY SCORE + ROADSIDE ASSISTANCE + LIVE VEHICLE HEALTH) */}
+      {/* 2. THREE MAIN DASHBOARD CARDS ROW (COMPACT COMPOSITION) */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full">
         
-        {/* CARD 1 — SAFETY SCORE (MINT / GREEN PASTEL BACKGROUND) */}
+        {/* CARD 1 — SAFETY SCORE (PALE GREEN) */}
         <div className="md:col-span-4 bg-gradient-to-br from-[#F0FDF4] to-[#DCFCE7] dark:from-emerald-950/40 dark:to-emerald-900/20 rounded-3xl border border-emerald-200 dark:border-emerald-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-emerald-200/60 dark:border-emerald-800/40 pb-3">
             <div className="flex items-center gap-2">
               <Award className="size-4 text-emerald-600 shrink-0" />
               <h3 className="text-xs font-black text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">
-                Safety Score
+                SAFETY SCORE
               </h3>
             </div>
             <button className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50 shadow-2xs transition-colors cursor-pointer">
@@ -230,7 +227,7 @@ export function HomeScreen({
 
           <div className="space-y-1.5 text-center my-1">
             <div className="text-4xl font-black text-emerald-950 dark:text-emerald-100 font-mono tracking-tight">
-              98<span className="text-lg text-emerald-600 font-bold"> /100</span>
+              98 <span className="text-lg text-emerald-600 font-bold">/100</span>
             </div>
             <p className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
               Status: Excellent
@@ -242,7 +239,7 @@ export function HomeScreen({
             </div>
           </div>
 
-          {/* Four Performance Metrics */}
+          {/* Four Metrics Breakdown */}
           <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/40 space-y-2 text-xs text-emerald-950 dark:text-emerald-200">
             <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
               <div className="flex justify-between items-center bg-white/60 dark:bg-emerald-900/40 p-1.5 rounded-lg">
@@ -267,13 +264,13 @@ export function HomeScreen({
           </div>
         </div>
 
-        {/* CARD 2 — ROADSIDE ASSISTANCE (WARM CREAM / PEACH BACKGROUND) */}
+        {/* CARD 2 — NEED ROADSIDE ASSISTANCE? (WARM PALE YELLOW/ORANGE) */}
         <div className="md:col-span-4 bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] dark:from-amber-950/40 dark:to-amber-900/20 rounded-3xl border border-amber-200 dark:border-amber-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-800/40 pb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="size-4.5 text-amber-600 shrink-0" />
               <h3 className="text-xs font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider">
-                Need Roadside Assistance?
+                NEED ROADSIDE ASSISTANCE?
               </h3>
             </div>
           </div>
@@ -302,13 +299,13 @@ export function HomeScreen({
           </motion.button>
         </div>
 
-        {/* CARD 3 — LIVE VEHICLE HEALTH (SUBTLE LIGHT-BLUE BACKGROUND) */}
+        {/* CARD 3 — LIVE VEHICLE HEALTH (PALE BLUE) */}
         <div className="md:col-span-4 bg-gradient-to-br from-[#F0F9FF] to-[#E0F2FE] dark:from-blue-950/40 dark:to-blue-900/20 rounded-3xl border border-blue-200 dark:border-blue-800/40 p-6 flex flex-col justify-between space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-blue-200/60 dark:border-blue-800/40 pb-3">
             <div className="flex items-center gap-2">
               <Cpu className="size-4.5 text-blue-600 shrink-0" />
               <h3 className="text-xs font-black text-blue-950 dark:text-blue-200 uppercase tracking-wider">
-                Live Vehicle Health
+                LIVE VEHICLE HEALTH
               </h3>
             </div>
             <button className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-blue-700 border border-blue-200 hover:bg-blue-50 shadow-2xs transition-colors cursor-pointer">
@@ -340,7 +337,7 @@ export function HomeScreen({
         <div className="flex items-center justify-between border-b border-neutral-100 dark:border-white/5 pb-3">
           <div>
             <h3 className="text-sm sm:text-base font-black text-[#0F172A] dark:text-[#F8FAFC] uppercase tracking-wider">
-              Popular Services
+              POPULAR SERVICES
             </h3>
             <p className="text-xs text-neutral-400 font-medium">
               We've got you covered
@@ -350,7 +347,7 @@ export function HomeScreen({
             onClick={onEmergency}
             className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline cursor-pointer"
           >
-            View All Services <ChevronRight className="size-4" />
+            View All Services →
           </button>
         </div>
 
@@ -393,7 +390,7 @@ export function HomeScreen({
         </div>
       </div>
 
-      {/* 4. TRUST / FEATURE STRIP (5 ITEMS) */}
+      {/* 4. TRUST / BENEFITS FOOTER (5 ITEMS) */}
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
         {[
           { title: "You're in Safe Hands", desc: 'Trusted by thousands of drivers. We ensure your safety, always.', icon: ShieldCheck },
