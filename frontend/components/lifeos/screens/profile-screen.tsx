@@ -31,7 +31,11 @@ import {
   Trash2,
   Star,
   Pencil,
+  Camera,
+  Loader2,
+  X,
 } from 'lucide-react'
+
 
 type ProfileTab = 'all' | 'personal' | 'garage' | 'billing' | 'emergency' | 'security'
 
@@ -147,6 +151,53 @@ export function ProfileScreen({
 
   // Emergency contact test state
   const [testSent, setTestSent] = useState(false)
+
+  // Photo Upload & Removal State
+  const [uploadingVehicleId, setUploadingVehicleId] = useState<string | null>(null)
+  const [showRemoveConfirmId, setShowRemoveConfirmId] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const handleVehiclePhotoUpload = (vehicleId: string, file: File) => {
+    setUploadError(null)
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please choose a valid image file (JPG, PNG, WEBP).')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Please choose an image smaller than 5MB.')
+      return
+    }
+
+    setUploadingVehicleId(vehicleId)
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string
+      if (dataUrl) {
+        const updatedVehicles = garageVehicles.map((v) =>
+          v.id === vehicleId ? { ...v, photoUrl: dataUrl } : v
+        )
+        onVehiclesChange(updatedVehicles, primaryVehicleId)
+      }
+      setUploadingVehicleId(null)
+    }
+    reader.onerror = () => {
+      setUploadError("Couldn't upload the photo. Please try again.")
+      setUploadingVehicleId(null)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveVehiclePhoto = (vehicleId: string) => {
+    const updatedVehicles = garageVehicles.map((v) =>
+      v.id === vehicleId ? { ...v, photoUrl: undefined } : v
+    )
+    onVehiclesChange(updatedVehicles, primaryVehicleId)
+    setShowRemoveConfirmId(null)
+  }
+
 
   // Sync settings when the user profile changes
   useEffect(() => {
@@ -440,9 +491,9 @@ export function ProfileScreen({
                   </div>
                 </WarmCard>
 
-                {/* Primary Entered Vehicle Spotlight Card */}
-                <WarmCard variant="blue" className="p-4 sm:p-5 border border-[#2563EB]/30 space-y-3">
-                  <div className="flex items-center justify-between">
+                {/* Primary Entered Vehicle Spotlight Card with Identification Photo Upload */}
+                <WarmCard variant="blue" className="p-4 sm:p-6 border border-[#2563EB]/30 space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#2563EB]/15 pb-3">
                     <div className="flex items-center gap-2">
                       <CategoryIconBox icon={Car} color="blue" />
                       <div>
@@ -459,21 +510,110 @@ export function ProfileScreen({
                     </WarmBadge>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-[#2563EB]/15 text-xs">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Vehicle Model</p>
-                      <p className="font-black text-[#0F172A] dark:text-[#F8FAFC]">{primaryVehicle.name}</p>
+                  {/* MAIN PHOTO + DETAILS ROW */}
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                    {/* VEHICLE PHOTO AREA */}
+                    <div className="flex flex-col items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                      <div className="relative size-32 sm:size-36 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-dashed border-[#2563EB]/30 overflow-hidden shadow-sm flex flex-col items-center justify-center text-center p-2 group">
+                        {uploadingVehicleId === primaryVehicle.id ? (
+                          <div className="flex flex-col items-center space-y-2 p-3 text-center">
+                            <Loader2 className="size-6 text-[#2563EB] animate-spin" />
+                            <span className="text-[10px] font-bold text-[#2563EB]">Uploading photo...</span>
+                          </div>
+                        ) : primaryVehicle.photoUrl ? (
+                          <img
+                            src={primaryVehicle.photoUrl}
+                            alt={primaryVehicle.name}
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center space-y-1 text-center p-2">
+                            <div className="size-10 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
+                              <Car className="size-5" />
+                            </div>
+                            <span className="text-[11px] font-black text-[#0F172A] dark:text-[#F8FAFC]">
+                              Add Vehicle Photo
+                            </span>
+                            <span className="text-[9px] text-[#475569] dark:text-[#94A3B8] font-medium leading-tight">
+                              For identification purposes
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Photo Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2 w-full justify-center">
+                        <input
+                          type="file"
+                          id={`primary-photo-input-${primaryVehicle.id}`}
+                          accept="image/png, image/jpeg, image/jpg, image/webp"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleVehiclePhotoUpload(primaryVehicle.id, e.target.files[0])
+                            }
+                          }}
+                          className="hidden"
+                        />
+
+                        <label
+                          htmlFor={`primary-photo-input-${primaryVehicle.id}`}
+                          className="px-3 py-1.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-extrabold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Camera className="size-3.5" />
+                          <span>{primaryVehicle.photoUrl ? 'Change Photo' : 'Upload Photo'}</span>
+                        </label>
+
+                        {primaryVehicle.photoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setShowRemoveConfirmId(primaryVehicle.id)}
+                            className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all border border-rose-200/60 dark:border-rose-900/40 cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Registration Plate</p>
-                      <p className="font-mono font-black text-[#2563EB]">{primaryVehicle.plate}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Color & Type</p>
-                      <p className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">{primaryVehicle.color} · {vehicleType}</p>
+
+                    {/* VEHICLE DETAILS & PRIVACY REFERENCE NOTICE */}
+                    <div className="flex-1 space-y-3 w-full">
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Vehicle Model</p>
+                          <p className="font-black text-[#0F172A] dark:text-[#F8FAFC] text-sm">{primaryVehicle.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Registration Plate</p>
+                          <p className="font-mono font-black text-[#2563EB] text-sm">{primaryVehicle.plate}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Vehicle Color</p>
+                          <p className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">{primaryVehicle.color}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase text-[#475569] dark:text-[#94A3B8]">Drive Type</p>
+                          <p className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">{vehicleType}</p>
+                        </div>
+                      </div>
+
+                      {/* Privacy & Purpose Text */}
+                      <div className="bg-[#2563EB]/5 border border-[#2563EB]/15 rounded-xl p-3 text-[11px] text-[#475569] dark:text-[#94A3B8] font-medium leading-relaxed flex items-start gap-2.5">
+                        <ShieldCheck className="size-4 text-[#2563EB] shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-extrabold text-[#2563EB]">Vehicle photo · Identification reference only</p>
+                          <p className="mt-0.5">Your photo is used only as a visual reference for identifying your vehicle during roadside assistance.</p>
+                        </div>
+                      </div>
+
+                      {uploadError && (
+                        <p className="text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200">
+                          {uploadError}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </WarmCard>
+
               </div>
             )}
           </div>
@@ -653,7 +793,13 @@ export function ProfileScreen({
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <CategoryIconBox icon={Car} color={isPrimary ? 'emerald' : 'blue'} className="shrink-0" />
+                        {v.photoUrl ? (
+                          <div className="relative size-12 rounded-xl overflow-hidden border border-[#2563EB]/30 shrink-0">
+                            <img src={v.photoUrl} alt={v.name} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <CategoryIconBox icon={Car} color={isPrimary ? 'emerald' : 'blue'} className="shrink-0" />
+                        )}
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-xs sm:text-sm font-black text-[#0F172A] dark:text-[#F8FAFC] truncate">{v.name}</h3>
@@ -675,6 +821,36 @@ export function ProfileScreen({
 
                       {/* Vehicle Action Options */}
                       <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                        <input
+                          type="file"
+                          id={`garage-photo-input-${v.id}`}
+                          accept="image/png, image/jpeg, image/jpg, image/webp"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleVehiclePhotoUpload(v.id, e.target.files[0])
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor={`garage-photo-input-${v.id}`}
+                          className="p-2 rounded-xl text-[#2563EB] hover:bg-[#2563EB]/10 border border-[#2563EB]/20 transition-all cursor-pointer"
+                          title={v.photoUrl ? 'Change Vehicle Photo' : 'Upload Vehicle Photo'}
+                        >
+                          <Camera className="size-4" />
+                        </label>
+
+                        {v.photoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setShowRemoveConfirmId(v.id)}
+                            className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 transition-all cursor-pointer"
+                            title="Remove Vehicle Photo"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        )}
+
                         {!isPrimary && (
                           <button
                             onClick={() => handleSetPrimary(v.id)}
@@ -863,6 +1039,37 @@ export function ProfileScreen({
         )}
 
       </div>
+
+      {/* Remove Photo Confirmation Modal */}
+      {showRemoveConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-[#151C2C] border border-neutral-200 dark:border-white/10 rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <AlertCircle className="size-6 shrink-0" />
+              <h3 className="text-sm font-black text-[#0F172A] dark:text-[#F8FAFC]">Remove Vehicle Photo?</h3>
+            </div>
+            <p className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">
+              Are you sure you want to remove the photo for this vehicle? Registration and vehicle details will be kept.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowRemoveConfirmId(null)}
+                className="flex-1 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-bold hover:bg-neutral-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRemoveVehiclePhoto(showRemoveConfirmId)}
+                className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition-all shadow-sm cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

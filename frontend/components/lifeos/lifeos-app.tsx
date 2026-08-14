@@ -260,7 +260,13 @@ export function LifeOSApp() {
           onFound={() => go('found')}
         />
       )}
-      {screen === 'found' && <FoundScreen onTrack={() => go('tracking')} />}
+      {screen === 'found' && (
+        <FoundScreen
+          emergencies={selectedEmergencies}
+          vehicle={selectedVehicle}
+          onTrack={() => go('tracking')}
+        />
+      )}
       {screen === 'tracking' && <TrackingScreen onArrived={() => go('payment')} />}
       {screen === 'payment' && (
         <PaymentScreen

@@ -39,6 +39,9 @@ export type Emergency = {
   causes: string[]
   symptoms: string[]
   included: string[]
+  capabilities?: string[]
+  recommendedTier?: 'standard' | 'heavy'
+  recommendedSquadText?: string
 }
 
 export const emergencies: Emergency[] = [
@@ -56,6 +59,9 @@ export const emergencies: Emergency[] = [
     causes: ['Puncture', 'Sharp road objects', 'Valve leak', 'Low tyre pressure', 'Worn tyre'],
     symptoms: ['Tyre looks deflated', 'Vehicle pulls to one side', 'Steering feels unusual', 'Warning indicator may appear'],
     included: ['Puncture repair or stepney replacement', 'Tyre pressure check', 'Wheel nut tightening', 'Safety recheck before you go'],
+    capabilities: ['Tyre repair', 'Spare wheel replacement', 'Tyre pressure check', 'Wheel nut tightening'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Tyre Expert & Roadside Rescue Specialist',
   },
   {
     id: 'battery',
@@ -71,6 +77,9 @@ export const emergencies: Emergency[] = [
     causes: ['Left headlights on', 'Aging battery (>3 years)', 'Faulty alternator', 'Cold temperature', 'Parasitic drain'],
     symptoms: ['Clicking sound on start', 'Dim headlights', 'Slow engine crank', 'Dashboard battery warning light'],
     included: ['High-amp battery jump start', 'Voltage & alternator diagnostic', 'Terminal cleaning & tightening', 'New battery replacement option'],
+    capabilities: ['Battery jump start', 'Battery diagnostic', 'Battery replacement support', 'Electrical inspection'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Certified Electrical & Battery Specialist',
   },
   {
     id: 'engine',
@@ -86,6 +95,9 @@ export const emergencies: Emergency[] = [
     causes: ['Ignition coil failure', 'Faulty spark plugs', 'Sensor malfunction (OBD-II)', 'Fuel pump issue', 'Timing belt problem'],
     symptoms: ["Engine cranks but won't start", 'Sudden stalling at idle', 'Check engine light illuminated', 'Rough idling or misfire'],
     included: ['On-site OBD-II diagnostic scan', 'Ignition & sensor inspection', 'Emergency electrical bypass', 'Roadside clearance verification'],
+    capabilities: ['Engine diagnostics', 'Mechanical inspection', 'On-site troubleshooting', 'Towing if required'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Mechanical Specialist / Diagnostic Rescue',
   },
   {
     id: 'fuel',
@@ -101,6 +113,9 @@ export const emergencies: Emergency[] = [
     causes: ['Inaccurate fuel gauge', 'Unexpected traffic delay', 'Long distance between fuel stations'],
     symptoms: ['Engine sputtering', 'Fuel indicator on empty', 'Vehicle stopped on shoulder'],
     included: ['5 Liters premium fuel delivery', 'Safe funnel fueling', 'Fuel system priming', 'Engine start verification'],
+    capabilities: ['Fuel delivery', 'Safe roadside assistance', 'Vehicle restart assistance'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Standard Roadside Service / Fuel Assistance',
   },
   {
     id: 'lockout',
@@ -116,6 +131,9 @@ export const emergencies: Emergency[] = [
     causes: ['Automatic door lock triggered', 'Key fob battery dead inside', 'Key left in ignition or trunk'],
     symptoms: ['Keys visible inside vehicle', 'Doors locked from outside', 'Key fob unresponsive'],
     included: ['Damage-free air wedge unlocking', 'Special lock-pick tool entry', 'Trunk key retrieval', 'Key fob signal re-sync test'],
+    capabilities: ['Vehicle access assistance', 'Non-damage unlocking', 'Lockout support'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Standard Roadside Locksmith Assistance',
   },
   {
     id: 'overheat',
@@ -125,12 +143,15 @@ export const emergencies: Emergency[] = [
     fee: 950,
     eta: '15 min',
     category: 'Cooling',
-    image: '/images/issues/overheating.svg',
+    image: '/images/issues/overheating.png',
     description: "Engine temperature high? We'll cool it down and prevent further damage.",
     about: 'Engine overheating can severely damage internal heads. We diagnose radiator leaks and top up coolant.',
     causes: ['Coolant leak', 'Broken radiator fan', 'Thermostat stuck closed', 'Low engine oil'],
     symptoms: ['Steam from under hood', 'Temp gauge in red zone', 'Coolant smell in cabin', 'Engine knocking sound'],
     included: ['Safe engine cooling procedure', 'Radiator & hose pressure test', 'Coolant refill (up to 2L)', 'Fan & thermostat diagnostic'],
+    capabilities: ['Cooling system inspection', 'Coolant support', 'Temperature diagnostics', 'Safe towing if required'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'Standard Roadside Mechanical Assistance',
   },
   {
     id: 'towing',
@@ -146,6 +167,9 @@ export const emergencies: Emergency[] = [
     causes: ['Major mechanical breakdown', 'Transmission failure', 'Axle or brake lock', 'Collision impact'],
     symptoms: ['Vehicle unsafe to drive', 'Wheels locked', 'Engine completely inoperable'],
     included: ['Hydraulic flatbed truck dispatch', 'Soft-strap wheel winching', 'Transport to designated workshop', 'On-truck insurance coverage'],
+    capabilities: ['Vehicle towing', 'Recovery assistance', 'Flatbed transportation', 'Winch support'],
+    recommendedTier: 'heavy',
+    recommendedSquadText: 'Heavy Rescue & Towing Rig Recommended',
   },
   {
     id: 'other',
@@ -161,6 +185,9 @@ export const emergencies: Emergency[] = [
     causes: ['Loose belts', 'Minor oil leak', 'Brake squeal', 'Electrical glitch', 'Fuse blown'],
     symptoms: ['Strange noise while driving', 'Warning light on dash', 'Minor fluid leak under car'],
     included: ['20-Point diagnostic inspection', 'Fuse & relay replacement', 'Fluid top-up check', 'Roadside fix or recommendation'],
+    capabilities: ['20-Point diagnostic inspection', 'Fuse & relay replacement', 'Fluid top-up check', 'On-site troubleshooting'],
+    recommendedTier: 'standard',
+    recommendedSquadText: 'General Service & Roadside Diagnostic',
   },
 ]
 
@@ -169,7 +196,9 @@ export type Vehicle = {
   name: string
   plate: string
   color: string
+  photoUrl?: string
 }
+
 
 export const vehicles: Vehicle[] = [
   { id: 'v1', name: 'Tesla Model 3', plate: 'TN 07 CX 4218', color: 'Midnight Silver' },

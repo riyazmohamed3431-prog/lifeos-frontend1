@@ -119,3 +119,35 @@ export async function getCurrentLocation(): Promise<UserCoordinates> {
     }
   }
 }
+
+/**
+ * Perform reverse geocoding for latitude and longitude coordinates.
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 3500)
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+      {
+        headers: { 'User-Agent': 'LifeOS-Roadside-App' },
+        signal: controller.signal,
+      }
+    )
+    clearTimeout(timer)
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.display_name) {
+        const parts = data.display_name.split(',')
+        if (parts.length >= 3) {
+          return parts.slice(0, 4).join(',').trim()
+        }
+        return data.display_name
+      }
+    }
+  } catch (err) {
+    console.log('[LifeOS Location] Reverse geocoding fallback triggered:', err)
+  }
+  return `${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E · GPS Locked`
+}
+

@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   getCurrentLocation,
   getPermissionState,
+  reverseGeocode,
   type UserCoordinates,
   type PermissionState,
 } from '@/lib/location'
 
 export function useLocation() {
   const [location, setLocation] = useState<UserCoordinates | null>(null)
+  const [address, setAddress] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [permissionState, setPermissionState] = useState<PermissionState>('unknown')
@@ -26,6 +28,14 @@ export function useLocation() {
       setLocation(coords)
       setError(null)
       setPermissionState('granted')
+
+      // Attempt reverse geocoding in background
+      try {
+        const addr = await reverseGeocode(coords.latitude, coords.longitude)
+        setAddress(addr)
+      } catch {
+        setAddress(`${coords.latitude.toFixed(4)}°, ${coords.longitude.toFixed(4)}°`)
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to acquire device location.')
       const updatedPerm = await getPermissionState()
@@ -64,9 +74,11 @@ export function useLocation() {
 
   return {
     location,
+    address,
     loading,
     error,
     permissionState,
     requestLocation,
   }
 }
+
