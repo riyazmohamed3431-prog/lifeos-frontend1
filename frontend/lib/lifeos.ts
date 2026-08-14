@@ -197,6 +197,7 @@ export type Vehicle = {
   plate: string
   color: string
   photoUrl?: string
+  image?: string
 }
 
 

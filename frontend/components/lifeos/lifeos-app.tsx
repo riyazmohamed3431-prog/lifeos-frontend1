@@ -256,6 +256,7 @@ export function LifeOSApp() {
       {screen === 'waiting' && (
         <WaitingScreen
           emergencies={selectedEmergencies}
+          vehicle={selectedVehicle}
           vehicleName={selectedVehicle.name}
           onFound={() => go('found')}
         />
